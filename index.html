@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iron Soviet - Strength Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    
+    <!-- PWA Support -->
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="description" content="Soviet-style minimalist strength training tracker">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title">
+                <h1>☭ Iron Soviet</h1>
+                <p class="subtitle">Minimalist Variable Training</p>
+            </div>
+            <div class="header-stats">
+                <div class="stat-box">
+                    <span class="stat-label">Week</span>
+                    <span id="week-counter" class="stat-value">1</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Cycle</span>
+                    <span id="cycle-counter" class="stat-value">1</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Today's Workout Card -->
+            <section class="workout-card">
+                <div class="card-header">
+                    <h2 id="day-title">Monday - Heavy Day</h2>
+                    <div class="day-indicator">
+                        <span class="day-tag" id="day-type">Heavy</span>
+                        <span class="day-tag" id="day-focus">Strength</span>
+                    </div>
+                </div>
+                
+                <div class="workout-instruction">
+                    <p id="workout-instruction-text">Stop 2 reps before failure. Rest 3 min between sets.</p>
+                </div>
+
+                <!-- Exercise List -->
+                <div class="exercise-list" id="exercise-list">
+                    <!-- Exercises loaded dynamically -->
+                </div>
+
+                <div class="workout-actions">
+                    <button id="start-workout" class="btn btn-primary">Start Workout</button>
+                    <button id="complete-workout" class="btn btn-success" disabled>Complete Workout</button>
+                </div>
+            </section>
+
+            <!-- Progress Tracking -->
+            <section class="progress-section">
+                <h3>Today's Lifts</h3>
+                <div class="progress-grid" id="progress-grid">
+                    <!-- Progress items loaded dynamically -->
+                </div>
+            </section>
+
+            <!-- Quick Stats -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Next Session</h4>
+                        <p id="next-session">Wednesday - Light</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Bodyweight</h4>
+                        <input type="number" id="bodyweight-input" value="140" min="100" max="300">
+                        <span class="unit">lbs</span>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Deload In</h4>
+                        <p id="deload-countdown">3 weeks</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Controls -->
+            <section class="controls-section">
+                <div class="control-group">
+                    <button id="prev-day" class="btn btn-secondary">← Previous</button>
+                    <button id="next-day" class="btn btn-secondary">Next →</button>
+                </div>
+                <div class="control-group">
+                    <button id="reset-week" class="btn btn-warning">Reset Week</button>
+                    <button id="deload-week" class="btn btn-info">Start Deload</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Navigation Footer -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-view="workout">
+                <span class="nav-icon">🏋️</span>
+                <span class="nav-label">Workout</span>
+            </button>
+            <button class="nav-btn" data-view="history">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Progress</span>
+            </button>
+            <button class="nav-btn" data-view="program">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Program</span>
+            </button>
+            <button class="nav-btn" data-view="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </button>
+        </nav>
+
+        <!-- Modals -->
+        <div id="exercise-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3 id="modal-exercise-name">Exercise</h3>
+                <img id="modal-exercise-image" src="" alt="Exercise form" class="exercise-demo">
+                <div class="modal-instructions">
+                    <p id="modal-exercise-instructions"></p>
+                    <ul id="modal-exercise-tips"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
