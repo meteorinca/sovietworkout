@@ -423,20 +423,21 @@ body {
     color: var(--text-muted);
     font-style: italic;
 }
-.exercise-img-placeholder {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    margin-top: 6px;
-    padding: 8px 12px;
-    background: var(--bg-input);
+.exercise-image-container {
+    width: 100%;
+    margin-top: 10px;
     border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg-deep);
+    border: 1px solid var(--border-subtle);
 }
-.exercise-img-placeholder code {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    background: rgba(255,255,255,0.08);
-    padding: 1px 5px;
-    border-radius: 3px;
+
+.exercise-gif {
+    width: 100%;
+    display: block;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
 }
 
 /* ─── Sets Input Rows ────────────────────────────────────────── */

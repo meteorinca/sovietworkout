@@ -308,7 +308,9 @@ function renderWorkout(dayIndex, training, config) {
                 <p class="exercise-instructions">${ex.instructions}</p>
                 <ul class="exercise-tips">${ex.tips.map(t => `<li>${t}</li>`).join('')}</ul>
                 <p class="exercise-slot">Slot: ${ex.slot} · ${ex.why}</p>
-                <p class="exercise-img-placeholder">📷 <em>${ex.imageDescription}</em> — add photo as <code>assets/exercises/${ex.id}.png</code></p>
+                <div class="exercise-image-container">
+                    <img src="assets/exercises/${ex.id}.gif" alt="${ex.imageDescription || ex.name}" class="exercise-gif" onerror="this.parentElement.style.display='none'">
+                </div>
             </div>
             <div class="exercise-sets-block" id="sets-${ex.id}">
                 ${setsHTML}

@@ -87,8 +87,7 @@ A small section below the food checklist:
 - No cold stretching
 - No failure sets
 - No flared elbows on overhead press
-- No raw eggs
-- No sugar drinks as meals
+- No high sugar drinks or desserts
 
 Not interactive—just visible so you internalize it.
 

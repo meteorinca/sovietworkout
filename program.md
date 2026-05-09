@@ -134,5 +134,27 @@ Growth hormone pulses during deep sleep. One bad night measurably lowers muscle 
 - No cold stretching — warm up first
 - No failure sets — always leave 2 in the tank
 - No flared elbows on overhead press — armpit at 45°
-- No raw eggs — cook them
-- No sugar drinks as meals
+- No high sugar drinks or desserts
+
+## Troubleshooting
+- [x] ❌ **Problem:** “Workout feels too easy or too hard.”
+  - [ ] **Solution:** Your work capacity is adjusting. This is normal. If it feels easy, use a heavier weight or add a rep. If it feels too hard, reduce weight slightly. Listen to your body.
+
+- [x] ❌ **Problem:** “I missed a workout or ate poorly yesterday.”
+  - [ ] **Solution:** Do not compensate by over-training or fasting. Just get back on schedule today. Consistency beats intensity.
+
+- [x] ❌ **Problem:** “My joints hurt during an exercise.”
+  - [ ] **Solution:** Stop immediately. Do not push through pain. Try a lighter weight or a different variation (e.g., goblet squats instead of lunges). If pain persists, consult a professional.
+
+- [x] ❌ **Problem:** “I’m not seeing progress.”
+  - [ ] **Solution:** Track your lifts meticulously. Are you increasing weight or reps over time? If not, you may need to increase your calorie intake to support muscle growth. Ensure protein is sufficient (1g/lb bodyweight).
+
+## Quick Reference
+| Term | Meaning | Action | 
+|------|---------|--------|
+| **RPE** | Rate of Perceived Exertion — how hard the set feels | Stop when you could still do 2 more reps (about an 8 on a 1-10 scale) | 
+| **Set** | A group of reps performed back-to-back | Rest 2-3 min between sets | 
+| **Heavy Day** | Low reps (3-5), long rest (2-3 min) | Focus on strength and weight | 
+| **Volume Day** | High reps (8-12), short rest (90s) | Focus on muscle size and work capacity | 
+| **Light Day** | Moderate reps (8-10), very light or bodyweight-only | Focus on form, speed, and motor control | 
+| **Progressive Overload** | Gradually increasing stress on the body | Add weight/reps/better form over time to force adaptation | 
