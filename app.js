@@ -311,6 +311,7 @@ function renderWorkout(dayIndex, training, config) {
                 <div class="exercise-image-container">
                     <img src="assets/exercises/${ex.id}.gif" alt="${ex.imageDescription || ex.name}" class="exercise-gif" onerror="this.style.display='none'">
                     ${ex.id === 'conditioning' ? `<img src="assets/exercises/ski_erg.gif" alt="Ski Erg form" class="exercise-gif" onerror="this.style.display='none'">` : ''}
+                    ${ex.id === 'pushup' ? `<img src="assets/exercises/pushup_form.gif" alt="Push-up form" class="exercise-gif" onerror="this.style.display='none'">` : ''}
                 </div>
             </div>
             <div class="exercise-sets-block" id="sets-${ex.id}">
