@@ -87,9 +87,9 @@ const EXERCISES = [
 
 // ─── Day Types ────────────────────────────────────────────────────
 const DAY_CONFIG = {
-    0: { type: 'Heavy',  label: 'HEAVY DAY',              desc: 'Low reps · Long rest · Strength',         sets: 4, reps: '3–5',  rest: '2–3 min', instruction: 'Stop 2 reps before failure. Rest 2-3 min between sets. Choose a load where you could do 5-7 reps if forced.' },
-    2: { type: 'Volume', label: 'VOLUME DAY',              desc: 'More reps · Shorter rest · Hypertrophy',  sets: 3, reps: '8–12', rest: '90s',     instruction: 'Stop 2 reps before failure. Rest 90s between sets. Controlled tempo, feel the muscle.' },
-    4: { type: 'Light',  label: 'LIGHT / TECHNIQUE DAY',   desc: 'Low load · Perfect form · Speed',         sets: 3, reps: '8–10', rest: '60s',     instruction: 'Light or bodyweight only. Focus on perfect form and controlled tempo. Rest 60s.' }
+    0: { type: 'Heavy', label: 'HEAVY DAY', desc: 'Low reps · Long rest · Strength', sets: 4, reps: '3–5', rest: '2–3 min', instruction: 'Stop 2 reps before failure. Rest 2-3 min between sets. Choose a load where you could do 5-7 reps if forced.' },
+    2: { type: 'Volume', label: 'VOLUME DAY', desc: 'More reps · Shorter rest · Hypertrophy', sets: 3, reps: '8–12', rest: '90s', instruction: 'Stop 2 reps before failure. Rest 90s between sets. Controlled tempo, feel the muscle.' },
+    4: { type: 'Light', label: 'LIGHT / TECHNIQUE DAY', desc: 'Low load · Perfect form · Speed', sets: 3, reps: '8–10', rest: '60s', instruction: 'Light or bodyweight only. Focus on perfect form and controlled tempo. Rest 60s.' }
 };
 
 const TRAINING_DAYS = [0, 2, 4];
@@ -97,25 +97,25 @@ const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Satu
 
 // ─── Food Checklist ───────────────────────────────────────────────
 const FOOD_ITEMS = [
-    { id: 'eggs',       label: '8–9 boiled eggs',             icon: '🥚' },
-    { id: 'chicken',    label: '150–200g chicken breast',     icon: '🍗' },
-    { id: 'parantha',   label: '1–2 spicy chicken paranthas', icon: '🫓' },
-    { id: 'milk',       label: '500ml milk',                  icon: '🥛' },
-    { id: 'creatine',   label: '5g creatine',                 icon: '💊' },
-    { id: 'supps',      label: 'Fish oil · Vitamin D · B3',   icon: '💊' },
-    { id: 'fruit_veg',  label: 'Orange + raw spinach',        icon: '🍊' }
+    { id: 'eggs', label: '8–9 boiled eggs', icon: '🥚' },
+    { id: 'chicken', label: '150–200g chicken breast', icon: '🍗' },
+    { id: 'parantha', label: '1–2 spicy chicken paranthas', icon: '🫓' },
+    { id: 'milk', label: '500ml milk', icon: '🥛' },
+    { id: 'creatine', label: '5g creatine', icon: '💊' },
+    { id: 'supps', label: 'Fish oil · Vitamin D · B3', icon: '💊' },
+    { id: 'fruit_veg', label: 'Orange + raw spinach', icon: '🍊' }
 ];
 
 // ─── Rest Day Checklist ───────────────────────────────────────────
 const REST_ITEMS = [
-    { id: 'rest_walk',      label: '20–30 min walk or light movement',  icon: '🚶' },
-    { id: 'rest_food',      label: 'Full food checklist (all items)',    icon: '🍽️' },
-    { id: 'rest_creatine',  label: '5g creatine',                       icon: '💊' },
-    { id: 'rest_supps',     label: 'Supplements (fish oil, D, B3)',     icon: '💊' },
-    { id: 'rest_water',     label: 'Water + pinch of salt',             icon: '💧' },
-    { id: 'rest_sleep',     label: '7–8 hours sleep',                   icon: '😴' },
-    { id: 'rest_postwalk',  label: '10 min walk after largest meal',    icon: '🚶' },
-    { id: 'rest_stretch',   label: 'Brief stretching (optional)',       icon: '🧘' }
+    { id: 'rest_walk', label: '20–30 min walk or light movement', icon: '🚶' },
+    { id: 'rest_food', label: 'Full food checklist (all items)', icon: '🍽️' },
+    { id: 'rest_creatine', label: '5g creatine', icon: '💊' },
+    { id: 'rest_supps', label: 'Supplements (fish oil, D, B3)', icon: '💊' },
+    { id: 'rest_water', label: 'Water + pinch of salt', icon: '💧' },
+    { id: 'rest_sleep', label: '7–8 hours sleep', icon: '😴' },
+    { id: 'rest_postwalk', label: '10 min walk after largest meal', icon: '🚶' },
+    { id: 'rest_stretch', label: 'Brief stretching', icon: '🧘' }
 ];
 
 // ─── State ────────────────────────────────────────────────────────
@@ -185,12 +185,12 @@ function render() {
     renderBodyweight();
 
     // Show/hide training-only sections
-    document.getElementById('warmup-section').style.display   = training ? '' : 'none';
-    document.getElementById('workout-section').style.display   = training ? '' : 'none';
-    document.getElementById('cooldown-section').style.display  = training ? '' : 'none';
+    document.getElementById('warmup-section').style.display = training ? '' : 'none';
+    document.getElementById('workout-section').style.display = training ? '' : 'none';
+    document.getElementById('cooldown-section').style.display = training ? '' : 'none';
 
     // Show/hide rest-day section
-    document.getElementById('rest-day-section').style.display  = training ? 'none' : '';
+    document.getElementById('rest-day-section').style.display = training ? 'none' : '';
 }
 
 function renderDaySelector(activeDay) {
@@ -256,7 +256,7 @@ function renderWorkout(dayIndex, training, config) {
         let setsHTML = '';
         for (let s = 0; s < numSets; s++) {
             const savedWeight = currentLog?.sets?.[s]?.weight ?? prevData?.sets?.[s]?.weight ?? '';
-            const savedReps   = currentLog?.sets?.[s]?.reps   ?? prevData?.sets?.[s]?.reps   ?? '';
+            const savedReps = currentLog?.sets?.[s]?.reps ?? prevData?.sets?.[s]?.reps ?? '';
             const isPrev = !currentLog?.sets?.[s] && prevData?.sets?.[s];
             setsHTML += `
                 <div class="set-row">
@@ -555,9 +555,9 @@ function cleanupOldData() {
     const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, '0')}-${String(cutoff.getDate()).padStart(2, '0')}`;
 
     for (const key of Object.keys(state.exerciseChecks || {})) { if (key < cutoffStr) delete state.exerciseChecks[key]; }
-    for (const key of Object.keys(state.foodChecks || {}))     { if (key < cutoffStr) delete state.foodChecks[key]; }
-    for (const key of Object.keys(state.restChecks || {}))     { if (key < cutoffStr) delete state.restChecks[key]; }
-    for (const key of Object.keys(state.workoutLog || {}))     { if (key < cutoffStr) delete state.workoutLog[key]; }
+    for (const key of Object.keys(state.foodChecks || {})) { if (key < cutoffStr) delete state.foodChecks[key]; }
+    for (const key of Object.keys(state.restChecks || {})) { if (key < cutoffStr) delete state.restChecks[key]; }
+    for (const key of Object.keys(state.workoutLog || {})) { if (key < cutoffStr) delete state.workoutLog[key]; }
     saveState();
 }
 
