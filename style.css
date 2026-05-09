@@ -44,6 +44,8 @@
 /* ─── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+
+
 html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 
 body {
@@ -222,7 +224,7 @@ body {
 
 /* ─── Collapsible Sections (Warm-up / Cooldown) ──────────────── */
 .collapsible-section {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .collapsible-toggle {
@@ -496,15 +498,15 @@ body {
 .rest-day-banner {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
-    padding: 36px 24px;
-    margin-bottom: 16px;
+    padding: 16px 12px; /* Even smaller padding */
+    margin-bottom: 8px; /* Smaller margin */
     text-align: center;
     box-shadow: var(--shadow-card);
     border: 1px solid var(--border-subtle);
 }
 .rest-day-icon {
-    font-size: 2.8rem;
-    margin-bottom: 10px;
+    font-size: 2.2rem; /* Reduced size */
+    margin-bottom: 6px;
 }
 .rest-day-banner h2 {
     font-size: 1.35rem;
@@ -513,14 +515,14 @@ body {
 }
 .rest-day-banner p {
     color: var(--text-secondary);
-    font-size: 0.88rem;
+    font-size: 0.85rem; /* Slightly smaller */
     max-width: 380px;
     margin: 0 auto;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 /* ─── Rest Day Protocol Blocks ───────────────────────────────── */
-.rest-protocol-body {
+.rest-protocol-body:not([hidden]) {
     display: flex;
     flex-direction: column;
     gap: 16px;
