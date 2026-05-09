@@ -3,138 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iron Soviet - Strength Tracker</title>
+    <title>Iron Soviet – Daily Strength & Nutrition Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
     <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-    
-    <!-- PWA Support -->
-    <meta name="theme-color" content="#2c3e50">
-    <meta name="description" content="Soviet-style minimalist strength training tracker">
+
+    <!-- PWA / SEO -->
+    <meta name="theme-color" content="#0f0f1a">
+    <meta name="description" content="Soviet-inspired daily strength training checklist and nutrition tracker. Open, tap the day, train, eat, done.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
+
         <!-- Header -->
-        <header class="header">
-            <div class="header-title">
+        <header class="header" id="app-header">
+            <div class="header-left">
                 <h1>☭ Iron Soviet</h1>
-                <p class="subtitle">Minimalist Variable Training</p>
+                <p class="subtitle">Strength · Nutrition · Discipline</p>
             </div>
-            <div class="header-stats">
-                <div class="stat-box">
-                    <span class="stat-label">Week</span>
-                    <span id="week-counter" class="stat-value">1</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">Cycle</span>
-                    <span id="cycle-counter" class="stat-value">1</span>
-                </div>
+            <div class="header-right">
+                <button id="reset-all-btn" class="icon-btn" title="Reset all data">⟳</button>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Today's Workout Card -->
-            <section class="workout-card">
-                <div class="card-header">
-                    <h2 id="day-title">Monday - Heavy Day</h2>
-                    <div class="day-indicator">
-                        <span class="day-tag" id="day-type">Heavy</span>
-                        <span class="day-tag" id="day-focus">Strength</span>
-                    </div>
-                </div>
-                
-                <div class="workout-instruction">
-                    <p id="workout-instruction-text">Stop 2 reps before failure. Rest 3 min between sets.</p>
-                </div>
-
-                <!-- Exercise List -->
-                <div class="exercise-list" id="exercise-list">
-                    <!-- Exercises loaded dynamically -->
-                </div>
-
-                <div class="workout-actions">
-                    <button id="start-workout" class="btn btn-primary">Start Workout</button>
-                    <button id="complete-workout" class="btn btn-success" disabled>Complete Workout</button>
-                </div>
-            </section>
-
-            <!-- Progress Tracking -->
-            <section class="progress-section">
-                <h3>Today's Lifts</h3>
-                <div class="progress-grid" id="progress-grid">
-                    <!-- Progress items loaded dynamically -->
-                </div>
-            </section>
-
-            <!-- Quick Stats -->
-            <section class="stats-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h4>Next Session</h4>
-                        <p id="next-session">Wednesday - Light</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Bodyweight</h4>
-                        <input type="number" id="bodyweight-input" value="140" min="100" max="300">
-                        <span class="unit">lbs</span>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Deload In</h4>
-                        <p id="deload-countdown">3 weeks</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Controls -->
-            <section class="controls-section">
-                <div class="control-group">
-                    <button id="prev-day" class="btn btn-secondary">← Previous</button>
-                    <button id="next-day" class="btn btn-secondary">Next →</button>
-                </div>
-                <div class="control-group">
-                    <button id="reset-week" class="btn btn-warning">Reset Week</button>
-                    <button id="deload-week" class="btn btn-info">Start Deload</button>
-                </div>
-            </section>
-        </main>
-
-        <!-- Navigation Footer -->
-        <nav class="bottom-nav">
-            <button class="nav-btn active" data-view="workout">
-                <span class="nav-icon">🏋️</span>
-                <span class="nav-label">Workout</span>
-            </button>
-            <button class="nav-btn" data-view="history">
-                <span class="nav-icon">📊</span>
-                <span class="nav-label">Progress</span>
-            </button>
-            <button class="nav-btn" data-view="program">
-                <span class="nav-icon">📋</span>
-                <span class="nav-label">Program</span>
-            </button>
-            <button class="nav-btn" data-view="settings">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-label">Settings</span>
-            </button>
+        <!-- Day Selector Bar -->
+        <nav class="day-selector" id="day-selector" aria-label="Day of the week">
+            <button class="day-btn" data-day="0">M</button>
+            <button class="day-btn" data-day="1">T</button>
+            <button class="day-btn" data-day="2">W</button>
+            <button class="day-btn" data-day="3">Th</button>
+            <button class="day-btn" data-day="4">F</button>
+            <button class="day-btn" data-day="5">Sa</button>
+            <button class="day-btn" data-day="6">Su</button>
         </nav>
 
-        <!-- Modals -->
-        <div id="exercise-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h3 id="modal-exercise-name">Exercise</h3>
-                <img id="modal-exercise-image" src="" alt="Exercise form" class="exercise-demo">
-                <div class="modal-instructions">
-                    <p id="modal-exercise-instructions"></p>
-                    <ul id="modal-exercise-tips"></ul>
-                </div>
+        <!-- Main Content Area -->
+        <main class="main-content" id="main-content">
+
+            <!-- Day Type Banner (shown on training days) -->
+            <div class="day-banner" id="day-banner">
+                <span class="day-banner-type" id="day-banner-type">HEAVY</span>
+                <span class="day-banner-desc" id="day-banner-desc">Low reps · Long rest · Strength</span>
             </div>
-        </div>
+
+            <!-- Warm-up Section (training days only) -->
+            <section class="collapsible-section" id="warmup-section">
+                <button class="collapsible-toggle" data-collapse="warmup-body" aria-expanded="false">
+                    <span>🔥 Warm-Up</span>
+                    <span class="toggle-icon">▸</span>
+                </button>
+                <div class="collapsible-body" id="warmup-body" hidden>
+                    <ul class="static-list">
+                        <li>3 min row machine – easy pace</li>
+                        <li>10 bodyweight squats</li>
+                        <li>Arm circles – 10 forward, 10 back</li>
+                        <li>Leg swings – 10 per side</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Workout Checklist (training days only, collapsible) -->
+            <section class="collapsible-section" id="workout-section">
+                <button class="collapsible-toggle" data-collapse="workout-body" aria-expanded="true">
+                    <span>🏋️ <span id="workout-toggle-label">Today's Training</span></span>
+                    <span class="toggle-icon">▾</span>
+                </button>
+                <div class="collapsible-body" id="workout-body">
+                    <div class="card-instruction" id="workout-instruction">Stop 2 reps before failure. Rest 3 min between sets.</div>
+                    <div class="exercise-checklist" id="exercise-checklist">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cooldown Section (training days only) -->
+            <section class="collapsible-section" id="cooldown-section">
+                <button class="collapsible-toggle" data-collapse="cooldown-body" aria-expanded="false">
+                    <span>🧊 Post-Workout Stretch</span>
+                    <span class="toggle-icon">▸</span>
+                </button>
+                <div class="collapsible-body" id="cooldown-body" hidden>
+                    <ul class="static-list">
+                        <li>Doorway chest stretch – 30s each side</li>
+                        <li>Lat stretch (hang from bar or doorframe) – 30s</li>
+                        <li>Hip flexor stretch – 30s each side</li>
+                        <li>Hamstring stretch – 30s each side</li>
+                        <li>Cat-cow – 10 reps slow</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ═══ REST DAY CONTENT (T/Th/Sa/Su) ═══ -->
+            <section id="rest-day-section" style="display:none;">
+
+                <!-- Rest Day Banner -->
+                <div class="rest-day-banner">
+                    <div class="rest-day-icon">🛌</div>
+                    <h2>Rest Day</h2>
+                    <p>Train hard, recover deliberately. This rhythm builds a durable, pain-free body.</p>
+                </div>
+
+                <!-- Rest Day Protocol (collapsible) -->
+                <div class="collapsible-section" id="rest-protocol-section">
+                    <button class="collapsible-toggle" data-collapse="rest-protocol-body" aria-expanded="false">
+                        <span>📖 Rest Day Protocol</span>
+                        <span class="toggle-icon">▸</span>
+                    </button>
+                    <div class="collapsible-body rest-protocol-body" id="rest-protocol-body" hidden>
+
+                        <div class="protocol-block">
+                            <h4>1. Move, but don't train</h4>
+                            <p>Low-intensity movement increases blood flow to muscles without creating fatigue, aiding repair.</p>
+                            <p class="protocol-do"><strong>Do 20–30 min of one:</strong></p>
+                            <ul class="static-list">
+                                <li>Walking outdoors (morning sunlight for circadian rhythm & vitamin D synergy)</li>
+                                <li>Very light rowing (conversational pace, no clock-watching)</li>
+                                <li>Casual cycling</li>
+                            </ul>
+                            <p class="protocol-avoid">Avoid anything that makes you breathe hard or creates muscle burn.</p>
+                        </div>
+
+                        <div class="protocol-block">
+                            <h4>2. Hydration & salt</h4>
+                            <p>Muscle repair requires intracellular water. Without adequate sodium, you excrete water faster.</p>
+                            <ul class="static-list">
+                                <li>Water across the day + pinch of salt in one glass or on food</li>
+                                <li>Urine stays pale yellow, not clear</li>
+                            </ul>
+                        </div>
+
+                        <div class="protocol-block">
+                            <h4>3. Eat the full food checklist</h4>
+                            <p>Rest days are when muscle protein synthesis peaks from the prior workout. The checklist is <strong>non-negotiable</strong> even on off days.</p>
+                            <p class="protocol-exception">Exception: if truly not hungry, drop the paranthas on Sunday only — not Tuesday or Thursday.</p>
+                        </div>
+
+                        <div class="protocol-block">
+                            <h4>4. Sleep optimization</h4>
+                            <p>Growth hormone pulses during deep sleep. One bad night measurably lowers muscle repair.</p>
+                            <ul class="static-list">
+                                <li>Same bedtime as workout days</li>
+                                <li>Room cool and dark</li>
+                                <li>No caffeine after 2 PM</li>
+                            </ul>
+                        </div>
+
+                        <div class="protocol-block">
+                            <h4>5. Walk after meals</h4>
+                            <p>10-minute walk after the largest meal improves nutrient partitioning — glucose is shuttled into muscles instead of sitting in the bloodstream.</p>
+                        </div>
+
+                        <div class="protocol-block">
+                            <h4>6. Stretch or mobility (optional)</h4>
+                            <p>5–10 min of the same post-workout stretches. Do it while watching something — zero effort integration.</p>
+                        </div>
+
+                        <div class="protocol-block protocol-block--danger">
+                            <h4>7. Do NOT</h4>
+                            <ul class="avoid-list">
+                                <li>Do extra sets "just because" — blunts recovery, increases injury risk</li>
+                                <li>Sit 8+ hours without standing breaks — undoes hip mobility gains</li>
+                                <li>Drink alcohol heavily — inhibits muscle protein synthesis for 24+ hours</li>
+                                <li>Skip meals to "save calories" — catabolic state on a rest day is counterproductive</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Rest Day Checklist -->
+                <div class="collapsible-section" id="rest-checklist-section">
+                    <button class="collapsible-toggle" data-collapse="rest-checklist-body" aria-expanded="true">
+                        <span>✅ Rest Day Checklist</span>
+                        <span class="toggle-icon">▾</span>
+                    </button>
+                    <div class="collapsible-body" id="rest-checklist-body">
+                        <div class="food-checklist" id="rest-checklist">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Progression Alerts -->
+            <section class="progression-alerts" id="progression-alerts" style="display:none;">
+                <h3>📈 Progression Flags</h3>
+                <div id="progression-list"></div>
+            </section>
+
+            <!-- Food Checklist (every day, collapsible) -->
+            <section class="collapsible-section" id="food-section">
+                <button class="collapsible-toggle" data-collapse="food-body" aria-expanded="true">
+                    <span>🍳 Daily Fuel <span class="food-progress" id="food-progress">0 / 7</span></span>
+                    <span class="toggle-icon">▾</span>
+                </button>
+                <div class="collapsible-body" id="food-body">
+                    <div class="food-checklist" id="food-checklist">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Avoid List (always visible) -->
+            <section class="avoid-card" id="avoid-card">
+                <h3>🚫 Never Do</h3>
+                <ul class="avoid-list">
+                    <li>No cold stretching — warm up first</li>
+                    <li>No failure sets — always leave 2 in the tank</li>
+                    <li>No flared elbows on overhead press — armpit at 45°</li>
+                    <li>No raw eggs — cook them</li>
+                    <li>No sugar drinks as meals</li>
+                </ul>
+            </section>
+
+            <!-- Bodyweight Log -->
+            <section class="bodyweight-card" id="bodyweight-card">
+                <label for="bodyweight-input">⚖️ Bodyweight</label>
+                <div class="bw-input-row">
+                    <input type="number" id="bodyweight-input" min="80" max="400" step="0.5" placeholder="lbs">
+                    <span class="unit">lbs</span>
+                </div>
+            </section>
+
+        </main>
     </div>
 
     <script src="app.js"></script>

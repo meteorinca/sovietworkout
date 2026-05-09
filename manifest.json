@@ -1,11 +1,12 @@
 {
-    "name": "Iron Soviet",
+    "name": "Iron Soviet – Strength & Nutrition Tracker",
     "short_name": "IronSoviet",
-    "description": "Soviet-style minimalist strength training tracker",
-    "start_url": "/",
+    "description": "Soviet-inspired daily strength training checklist and nutrition tracker. Open, tap the day, train, eat, done.",
+    "start_url": "./index.html",
+    "scope": ".",
     "display": "standalone",
-    "background_color": "#1a1a2e",
-    "theme_color": "#2c3e50",
+    "background_color": "#0f0f1a",
+    "theme_color": "#0f0f1a",
     "icons": [
         {
             "src": "assets/icons/android-chrome-192x192.png",

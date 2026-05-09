@@ -1,478 +1,571 @@
-// State Management
-let currentState = {
-    week: 1,
-    day: 0, // 0: Monday, 1: Wednesday, 2: Friday
-    cycle: 1,
-    workoutStarted: false,
-    bodyweight: 140,
-    progress: JSON.parse(localStorage.getItem('ironSovietProgress')) || {},
-    settings: JSON.parse(localStorage.getItem('ironSovietSettings')) || {
-        autoProgress: true,
-        notifications: true
-    }
-};
+/* ===================================================================
+   Iron Soviet – app.js
+   Soviet-inspired daily strength & nutrition tracker.
+   Static site, localStorage only. GitHub Pages compatible.
+   =================================================================== */
 
-// Soviet Training Program
-const program = {
-    weeks: {
-        1: {
-            days: [
-                {
-                    name: "Monday",
-                    type: "Heavy",
-                    focus: "Strength",
-                    instruction: "Stop 2 reps before failure. Rest 3 min between sets.",
-                    exercises: [
-                        { name: "Weighted Push-ups", sets: 4, reps: "3-5", weight: "+20-30lbs", type: "push" },
-                        { name: "Pull-ups", sets: 4, reps: "3-5", weight: "Bodyweight", type: "pull" },
-                        { name: "Goblet Squats", sets: 3, reps: 5, weight: "Heavy", type: "legs" },
-                        { name: "Hanging Leg Raises", sets: 3, reps: "5-8", weight: "Bodyweight", type: "core" }
-                    ]
-                },
-                {
-                    name: "Wednesday",
-                    type: "Light",
-                    focus: "Technique",
-                    instruction: "Focus on perfect form. Explosive movements. Rest 90s between sets.",
-                    exercises: [
-                        { name: "Push-ups", sets: 3, reps: 10, weight: "Bodyweight", type: "push" },
-                        { name: "Bodyweight Rows", sets: 3, reps: 12, weight: "Bodyweight", type: "pull" },
-                        { name: "Bulgarian Split Squats", sets: 3, reps: "8/leg", weight: "Bodyweight", type: "legs" },
-                        { name: "Plank", sets: 3, reps: "30s", weight: "Bodyweight", type: "core" }
-                    ]
-                },
-                {
-                    name: "Friday",
-                    type: "Volume",
-                    focus: "Hypertrophy",
-                    instruction: "Controlled tempo. Focus on muscle connection. Rest 2 min between sets.",
-                    exercises: [
-                        { name: "Overhead Press", sets: 4, reps: "8-10", weight: "Moderate", type: "push" },
-                        { name: "Chin-ups", sets: 4, reps: "6-8", weight: "Bodyweight", type: "pull" },
-                        { name: "Romanian Deadlifts", sets: 3, reps: "10-12", weight: "Moderate", type: "legs" },
-                        { name: "Ab Wheel", sets: 3, reps: "8-10", weight: "Bodyweight", type: "core" }
-                    ]
-                }
-            ]
-        },
-        2: {
-            days: [
-                {
-                    name: "Monday",
-                    type: "Heavy",
-                    focus: "Strength",
-                    instruction: "Stop 2 reps before failure. Rest 3 min between sets.",
-                    exercises: [
-                        { name: "Overhead Press", sets: 4, reps: "3-5", weight: "Heavy", type: "push" },
-                        { name: "Weighted Chin-ups", sets: 4, reps: "3-5", weight: "+10-20lbs", type: "pull" },
-                        { name: "Romanian Deadlifts", sets: 3, reps: 5, weight: "Heavy", type: "legs" },
-                        { name: "Weighted Plank", sets: 3, reps: "45s", weight: "+10lbs", type: "core" }
-                    ]
-                },
-                // ... similar structure for week 2, 3, 4
-            ]
-        }
-        // Weeks 3 and 4 would continue with rotated exercises
+// ─── Fixed Exercise Pool ──────────────────────────────────────────
+const EXERCISES = [
+    {
+        id: 'pushup',
+        name: 'Push-Ups',
+        equipment: 'Bodyweight ± backpack',
+        slot: 'Push',
+        icon: '💪',
+        why: 'Shoulder-safe, no barbell needed',
+        instructions: 'Keep core tight. Lower until chest nearly touches ground. Add weight via backpack once bodyweight is too easy.',
+        tips: ['Hands just outside shoulders', 'Squeeze glutes to keep hips level', 'Full lockout at top'],
+        imageDescription: 'Proper push-up form showing straight body alignment'
     },
-    deloadWeek: {
-        days: [
-            {
-                name: "Monday",
-                type: "Deload",
-                focus: "Recovery",
-                instruction: "50% of normal volume. Focus on perfect technique.",
-                exercises: [
-                    { name: "Push-ups", sets: 2, reps: 10, weight: "Easy", type: "push" },
-                    { name: "Bodyweight Rows", sets: 2, reps: 12, weight: "Easy", type: "pull" },
-                    { name: "Goblet Squats", sets: 2, reps: 10, weight: "Light", type: "legs" },
-                    { name: "Plank", sets: 2, reps: "30s", weight: "Bodyweight", type: "core" }
-                ]
-            }
-            // Similar for Wednesday and Friday
-        ]
+    {
+        id: 'kb_row',
+        name: 'Kettlebell Row',
+        equipment: 'Kettlebell',
+        slot: 'Pull',
+        icon: '👐',
+        why: 'No pull-up bar needed, protects low back',
+        instructions: 'One arm at a time. Brace core, pull elbow past torso, squeeze shoulder blade.',
+        tips: ['Flat back, slight hip hinge', 'Don\'t rotate torso', 'Controlled negative'],
+        imageDescription: 'One-arm kettlebell row with flat back position'
+    },
+    {
+        id: 'goblet_squat',
+        name: 'Goblet Squat',
+        equipment: 'Kettlebell',
+        slot: 'Legs (squat)',
+        icon: '🦵',
+        why: 'Teaches bracing, back-safe',
+        instructions: 'Hold kettlebell at chest. Squat deep, keep chest up, knees track over toes.',
+        tips: ['Elbows between knees at bottom', 'Drive through whole foot', 'Pause at bottom for control'],
+        imageDescription: 'Goblet squat with kettlebell held at chest level'
+    },
+    {
+        id: 'ham_curl',
+        name: 'Hamstring Curl',
+        equipment: 'Gym machine',
+        slot: 'Legs (hinge)',
+        icon: '🦵',
+        why: 'Direct posterior chain, zero spinal load',
+        instructions: 'Adjust machine pad to sit just above ankles. Curl with control, squeeze at top.',
+        tips: ['Don\'t arch your back', 'Slow negative (3 seconds)', 'Full range of motion'],
+        imageDescription: 'Seated or lying hamstring curl machine form'
+    },
+    {
+        id: 'ohp',
+        name: 'Overhead Press (KB)',
+        equipment: 'Kettlebell',
+        slot: 'Shoulder',
+        icon: '🏋️',
+        why: 'Armpit at 45°, joint-safe neutral grip',
+        instructions: 'Start at shoulder. Press straight up with neutral grip. Brace core — don\'t arch back.',
+        tips: ['Armpit at 45° — NOT flared out', 'Lockout overhead, bicep by ear', 'Breathe at the top'],
+        imageDescription: 'Kettlebell overhead press with neutral grip and 45-degree arm angle'
+    },
+    {
+        id: 'dead_bug',
+        name: 'Dead Bug',
+        equipment: 'Bodyweight',
+        slot: 'Core',
+        icon: '🎯',
+        why: 'Anti-extension, no spinal compression',
+        instructions: 'Lie on back, arms up, knees at 90°. Extend opposite arm and leg. Keep lower back pressed into floor.',
+        tips: ['Exhale as you extend', 'Move slowly — this is a control exercise', 'If back lifts off floor, reduce range'],
+        imageDescription: 'Dead bug exercise with opposite arm and leg extended'
+    },
+    {
+        id: 'conditioning',
+        name: 'Row / Ski Erg',
+        equipment: 'Gym machines',
+        slot: 'Conditioning',
+        icon: '🚣',
+        why: 'Full-body conditioning, low injury risk',
+        instructions: '10-15 minutes total. Alternate between rower and ski erg, or pick one. Moderate steady pace.',
+        tips: ['Don\'t death-grip the handle', 'Push with legs first on rower', 'Keep consistent stroke rate'],
+        imageDescription: 'Rowing machine and ski erg conditioning'
     }
+];
+
+// ─── Day Types ────────────────────────────────────────────────────
+const DAY_CONFIG = {
+    0: { type: 'Heavy',  label: 'HEAVY DAY',              desc: 'Low reps · Long rest · Strength',         sets: 4, reps: '3–5',  rest: '2–3 min', instruction: 'Stop 2 reps before failure. Rest 2-3 min between sets. Choose a load where you could do 5-7 reps if forced.' },
+    2: { type: 'Volume', label: 'VOLUME DAY',              desc: 'More reps · Shorter rest · Hypertrophy',  sets: 3, reps: '8–12', rest: '90s',     instruction: 'Stop 2 reps before failure. Rest 90s between sets. Controlled tempo, feel the muscle.' },
+    4: { type: 'Light',  label: 'LIGHT / TECHNIQUE DAY',   desc: 'Low load · Perfect form · Speed',         sets: 3, reps: '8–10', rest: '60s',     instruction: 'Light or bodyweight only. Focus on perfect form and controlled tempo. Rest 60s.' }
 };
 
-// DOM Elements
-const elements = {
-    weekCounter: document.getElementById('week-counter'),
-    cycleCounter: document.getElementById('cycle-counter'),
-    dayTitle: document.getElementById('day-title'),
-    dayType: document.getElementById('day-type'),
-    dayFocus: document.getElementById('day-focus'),
-    workoutInstruction: document.getElementById('workout-instruction-text'),
-    exerciseList: document.getElementById('exercise-list'),
-    progressGrid: document.getElementById('progress-grid'),
-    nextSession: document.getElementById('next-session'),
-    deloadCountdown: document.getElementById('deload-countdown'),
-    bodyweightInput: document.getElementById('bodyweight-input'),
-    
-    // Buttons
-    startWorkoutBtn: document.getElementById('start-workout'),
-    completeWorkoutBtn: document.getElementById('complete-workout'),
-    prevDayBtn: document.getElementById('prev-day'),
-    nextDayBtn: document.getElementById('next-day'),
-    resetWeekBtn: document.getElementById('reset-week'),
-    deloadWeekBtn: document.getElementById('deload-week'),
-    
-    // Modal
-    exerciseModal: document.getElementById('exercise-modal'),
-    closeModalBtn: document.querySelector('.close-modal'),
-    modalExerciseName: document.getElementById('modal-exercise-name'),
-    modalExerciseImage: document.getElementById('modal-exercise-image'),
-    modalExerciseInstructions: document.getElementById('modal-exercise-instructions')
-};
+const TRAINING_DAYS = [0, 2, 4];
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-// Initialize App
-function init() {
-    loadState();
-    renderWorkout();
-    setupEventListeners();
-    updateStats();
+// ─── Food Checklist ───────────────────────────────────────────────
+const FOOD_ITEMS = [
+    { id: 'eggs',       label: '8–9 boiled eggs',             icon: '🥚' },
+    { id: 'chicken',    label: '150–200g chicken breast',     icon: '🍗' },
+    { id: 'parantha',   label: '1–2 spicy chicken paranthas', icon: '🫓' },
+    { id: 'milk',       label: '500ml milk',                  icon: '🥛' },
+    { id: 'creatine',   label: '5g creatine',                 icon: '💊' },
+    { id: 'supps',      label: 'Fish oil · Vitamin D · B3',   icon: '💊' },
+    { id: 'fruit_veg',  label: 'Orange + raw spinach',        icon: '🍊' }
+];
+
+// ─── Rest Day Checklist ───────────────────────────────────────────
+const REST_ITEMS = [
+    { id: 'rest_walk',      label: '20–30 min walk or light movement',  icon: '🚶' },
+    { id: 'rest_food',      label: 'Full food checklist (all items)',    icon: '🍽️' },
+    { id: 'rest_creatine',  label: '5g creatine',                       icon: '💊' },
+    { id: 'rest_supps',     label: 'Supplements (fish oil, D, B3)',     icon: '💊' },
+    { id: 'rest_water',     label: 'Water + pinch of salt',             icon: '💧' },
+    { id: 'rest_sleep',     label: '7–8 hours sleep',                   icon: '😴' },
+    { id: 'rest_postwalk',  label: '10 min walk after largest meal',    icon: '🚶' },
+    { id: 'rest_stretch',   label: 'Brief stretching (optional)',       icon: '🧘' }
+];
+
+// ─── State ────────────────────────────────────────────────────────
+const STORAGE_KEY = 'ironSoviet_v2';
+let state = loadState();
+
+function defaultState() {
+    return {
+        selectedDay: todayDayIndex(),
+        bodyweight: '',
+        exerciseChecks: {},   // "YYYY-MM-DD_dayIndex": { exerciseId: true }
+        foodChecks: {},       // "YYYY-MM-DD": { foodId: true }
+        restChecks: {},       // "YYYY-MM-DD": { restId: true }
+        progression: {},      // exerciseId: { flagged, dayType, weight, date }
+        workoutLog: {}        // "YYYY-MM-DD": { exerciseId: { sets: [{weight, reps}] } }
+    };
 }
 
-// Load state from localStorage
 function loadState() {
-    const savedState = localStorage.getItem('ironSovietState');
-    if (savedState) {
-        const parsed = JSON.parse(savedState);
-        // Check if we should advance to next day based on last workout date
-        const lastWorkout = parsed.lastWorkoutDate ? new Date(parsed.lastWorkoutDate) : null;
-        const today = new Date();
-        
-        if (lastWorkout) {
-            const daysSince = Math.floor((today - lastWorkout) / (1000 * 60 * 60 * 24));
-            // Auto-advance if it's been more than 2 days since last workout
-            if (daysSince >= 2 && parsed.autoAdvance !== false) {
-                parsed.day = (parsed.day + 1) % 3;
-                if (parsed.day === 0) {
-                    parsed.week = parsed.week === 4 ? 1 : parsed.week + 1;
-                    if (parsed.week === 1) parsed.cycle++;
-                }
-            }
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            return { ...defaultState(), ...parsed };
         }
-        
-        currentState = { ...currentState, ...parsed };
-    }
-    saveState();
+    } catch (e) { /* corrupted — start fresh */ }
+    return defaultState();
 }
 
-// Save state to localStorage
 function saveState() {
-    currentState.lastWorkoutDate = new Date().toISOString();
-    localStorage.setItem('ironSovietState', JSON.stringify(currentState));
-    localStorage.setItem('ironSovietProgress', JSON.stringify(currentState.progress));
-    localStorage.setItem('ironSovietSettings', JSON.stringify(currentState.settings));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-// Render current workout
-function renderWorkout() {
-    const weekData = currentState.week === 4 ? program.deloadWeek : program.weeks[Math.min(currentState.week, 3)];
-    const dayData = weekData.days[currentState.day];
-    
-    // Update header
-    elements.dayTitle.textContent = `${dayData.name} - ${dayData.type} Day`;
-    elements.dayType.textContent = dayData.type;
-    elements.dayFocus.textContent = dayData.focus;
-    elements.workoutInstruction.textContent = dayData.instruction;
-    
-    // Update counters
-    elements.weekCounter.textContent = currentState.week;
-    elements.cycleCounter.textContent = currentState.cycle;
-    
-    // Render exercises
-    renderExercises(dayData.exercises);
-    
-    // Render progress inputs
-    renderProgressInputs(dayData.exercises);
-    
-    // Update next session
-    const nextDayIndex = (currentState.day + 1) % 3;
-    const nextDayData = weekData.days[nextDayIndex];
-    elements.nextSession.textContent = `${nextDayData.name} - ${nextDayData.type}`;
-    
-    // Update deload countdown
-    const weeksToDeload = 4 - (currentState.week % 4);
-    elements.deloadCountdown.textContent = `${weeksToDeload} ${weeksToDeload === 1 ? 'week' : 'weeks'}`;
-    
-    // Update bodyweight input
-    elements.bodyweightInput.value = currentState.bodyweight;
+// ─── Helpers ──────────────────────────────────────────────────────
+function todayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// Render exercise list
-function renderExercises(exercises) {
-    elements.exerciseList.innerHTML = '';
-    
-    exercises.forEach((exercise, index) => {
-        const exerciseEl = document.createElement('div');
-        exerciseEl.className = 'exercise-item';
-        exerciseEl.dataset.index = index;
-        
-        exerciseEl.innerHTML = `
-            <div class="exercise-header">
-                <span class="exercise-name">${exercise.name}</span>
-                <span class="exercise-sets">${exercise.sets} sets</span>
-            </div>
-            <div class="exercise-info">
-                <span>📊 ${exercise.reps} reps</span>
-                <span>⚖️ ${exercise.weight}</span>
-                <span>${getExerciseIcon(exercise.type)} ${exercise.type}</span>
-            </div>
-        `;
-        
-        exerciseEl.addEventListener('click', () => showExerciseModal(exercise));
-        elements.exerciseList.appendChild(exerciseEl);
+function todayDayIndex() {
+    const dow = new Date().getDay(); // 0=Sun
+    return dow === 0 ? 6 : dow - 1;  // convert to 0=Mon
+}
+
+function isTrainingDay(dayIndex) {
+    return TRAINING_DAYS.includes(dayIndex);
+}
+
+function getDayConfig(dayIndex) {
+    return DAY_CONFIG[dayIndex] || null;
+}
+
+// ─── Rendering ────────────────────────────────────────────────────
+
+function render() {
+    const day = state.selectedDay;
+    const training = isTrainingDay(day);
+    const config = getDayConfig(day);
+
+    renderDaySelector(day);
+    renderDayBanner(day, training, config);
+    renderWorkout(day, training, config);
+    renderRestDay(training);
+    renderRestChecklist();
+    renderProgressionAlerts();
+    renderFoodChecklist();
+    renderBodyweight();
+
+    // Show/hide training-only sections
+    document.getElementById('warmup-section').style.display   = training ? '' : 'none';
+    document.getElementById('workout-section').style.display   = training ? '' : 'none';
+    document.getElementById('cooldown-section').style.display  = training ? '' : 'none';
+
+    // Show/hide rest-day section
+    document.getElementById('rest-day-section').style.display  = training ? 'none' : '';
+}
+
+function renderDaySelector(activeDay) {
+    const btns = document.querySelectorAll('.day-btn');
+    const todayIdx = todayDayIndex();
+    btns.forEach(btn => {
+        const d = parseInt(btn.dataset.day);
+        btn.classList.toggle('active', d === activeDay);
+        btn.classList.toggle('training', isTrainingDay(d));
+        btn.classList.toggle('today', d === todayIdx);
     });
 }
 
-// Render progress tracking inputs
-function renderProgressInputs(exercises) {
-    elements.progressGrid.innerHTML = '';
-    
-    exercises.forEach((exercise, exerciseIndex) => {
-        const progressItem = document.createElement('div');
-        progressItem.className = 'progress-item';
-        
-        let setsHTML = '';
-        for (let i = 1; i <= exercise.sets; i++) {
-            setsHTML += `
-                <div class="set-inputs">
-                    <span>Set ${i}:</span>
-                    <input type="number" placeholder="Weight" id="weight-${exerciseIndex}-${i}" 
-                           data-exercise="${exerciseIndex}" data-set="${i}" data-type="weight">
-                    <input type="number" placeholder="Reps" id="reps-${exerciseIndex}-${i}" 
-                           data-exercise="${exerciseIndex}" data-set="${i}" data-type="reps">
-                </div>
-            `;
-        }
-        
-        progressItem.innerHTML = `
-            <div class="progress-exercise">
-                <span>${exercise.name}</span>
-                <span>${exercise.sets} × ${exercise.reps}</span>
-            </div>
-            ${setsHTML}
-        `;
-        
-        elements.progressGrid.appendChild(progressItem);
-    });
-    
-    // Load saved progress for this workout
-    loadProgressForWorkout();
-}
+function renderDayBanner(dayIndex, training, config) {
+    const banner = document.getElementById('day-banner');
+    const typeEl = document.getElementById('day-banner-type');
+    const descEl = document.getElementById('day-banner-desc');
 
-// Show exercise modal with form instructions
-function showExerciseModal(exercise) {
-    elements.modalExerciseName.textContent = exercise.name;
-    elements.modalExerciseImage.src = `assets/exercises/${exercise.name.toLowerCase().replace(/[^a-z]/g, '_')}.png`;
-    elements.modalExerciseImage.alt = `Proper form for ${exercise.name}`;
-    
-    // Set instructions based on exercise type
-    const instructions = getExerciseInstructions(exercise);
-    elements.modalExerciseInstructions.textContent = instructions;
-    
-    elements.exerciseModal.style.display = 'flex';
-}
-
-// Get exercise icon
-function getExerciseIcon(type) {
-    const icons = {
-        push: '💪',
-        pull: '👐',
-        legs: '🦵',
-        core: '🎯'
-    };
-    return icons[type] || '🏋️';
-}
-
-// Get exercise instructions
-function getExerciseInstructions(exercise) {
-    const instructions = {
-        'Weighted Push-ups': 'Place weight plate on upper back. Keep core tight, lower until chest nearly touches ground.',
-        'Pull-ups': 'Grip wider than shoulders. Pull chest to bar, avoid kipping. Lower with control.',
-        'Goblet Squats': 'Hold weight close to chest. Squat deep, keep chest up, knees tracking over toes.',
-        'Overhead Press': 'Start at shoulders. Press straight up, brace core. Don\'t arch back excessively.',
-        // Add more instructions as needed
-    };
-    
-    return instructions[exercise.name] || `Perform ${exercise.sets} sets of ${exercise.reps} with ${exercise.weight}. Focus on perfect form.`;
-}
-
-// Update statistics
-function updateStats() {
-    // This would calculate and display progress charts
-    // For minimal version, we just save/load progress
-}
-
-// Load progress for current workout
-function loadProgressForWorkout() {
-    const workoutKey = `week${currentState.week}_day${currentState.day}`;
-    const savedProgress = currentState.progress[workoutKey];
-    
-    if (savedProgress) {
-        savedProgress.forEach((set, index) => {
-            const [exerciseIndex, setNumber, weight, reps] = set.split(':');
-            const weightInput = document.getElementById(`weight-${exerciseIndex}-${setNumber}`);
-            const repsInput = document.getElementById(`reps-${exerciseIndex}-${setNumber}`);
-            
-            if (weightInput) weightInput.value = weight;
-            if (repsInput) repsInput.value = reps;
-        });
+    if (training && config) {
+        banner.style.display = '';
+        typeEl.textContent = config.label;
+        descEl.textContent = config.desc;
+        banner.className = 'day-banner day-banner--' + config.type.toLowerCase();
+    } else {
+        banner.style.display = 'none';
     }
 }
 
-// Save progress for current workout
-function saveProgressForWorkout() {
-    const inputs = document.querySelectorAll('.set-inputs input');
-    const workoutKey = `week${currentState.week}_day${currentState.day}`;
-    const progress = [];
-    
-    inputs.forEach(input => {
-        if (input.value) {
-            const { exercise, set, type } = input.dataset;
-            // Find matching pair (weight/reps)
-            const pairType = type === 'weight' ? 'reps' : 'weight';
-            const pairInput = document.querySelector(`input[data-exercise="${exercise}"][data-set="${set}"][data-type="${pairType}"]`);
-            
-            if (pairInput && pairInput.value) {
-                const weight = type === 'weight' ? input.value : pairInput.value;
-                const reps = type === 'reps' ? input.value : pairInput.value;
-                progress.push(`${exercise}:${set}:${weight}:${reps}`);
-            }
+function renderWorkout(dayIndex, training, config) {
+    const toggleLabel = document.getElementById('workout-toggle-label');
+    const instrEl = document.getElementById('workout-instruction');
+    const listEl = document.getElementById('exercise-checklist');
+
+    if (!training || !config) return;
+
+    toggleLabel.textContent = `${DAY_NAMES[dayIndex]} – ${config.type} Day`;
+    instrEl.textContent = config.instruction;
+
+    const dateKey = todayKey();
+    const checkKey = `${dateKey}_${dayIndex}`;
+
+    if (!state.exerciseChecks[checkKey]) {
+        state.exerciseChecks[checkKey] = {};
+    }
+    const checks = state.exerciseChecks[checkKey];
+
+    if (!state.workoutLog[dateKey]) {
+        state.workoutLog[dateKey] = {};
+    }
+
+    listEl.innerHTML = '';
+
+    EXERCISES.forEach(ex => {
+        const done = !!checks[ex.id];
+        const el = document.createElement('div');
+        el.className = 'exercise-row' + (done ? ' exercise-row--done' : '');
+        el.dataset.exerciseId = ex.id;
+
+        const prevData = getLastLogForExercise(ex.id, dayIndex);
+        const currentLog = state.workoutLog[dateKey]?.[ex.id];
+
+        const numSets = config.sets;
+        let setsHTML = '';
+        for (let s = 0; s < numSets; s++) {
+            const savedWeight = currentLog?.sets?.[s]?.weight ?? prevData?.sets?.[s]?.weight ?? '';
+            const savedReps   = currentLog?.sets?.[s]?.reps   ?? prevData?.sets?.[s]?.reps   ?? '';
+            const isPrev = !currentLog?.sets?.[s] && prevData?.sets?.[s];
+            setsHTML += `
+                <div class="set-row">
+                    <span class="set-label">Set ${s + 1}</span>
+                    <input type="number" class="set-input weight-input${isPrev ? ' suggested' : ''}" data-exercise="${ex.id}" data-set="${s}" data-field="weight"
+                           placeholder="lbs" value="${savedWeight}">
+                    <span class="set-x">×</span>
+                    <input type="number" class="set-input reps-input${isPrev ? ' suggested' : ''}" data-exercise="${ex.id}" data-set="${s}" data-field="reps"
+                           placeholder="reps" value="${savedReps}">
+                </div>`;
+        }
+
+        el.innerHTML = `
+            <div class="exercise-row-main">
+                <button class="exercise-check" data-exercise="${ex.id}" aria-label="Mark ${ex.name} done">
+                    <span class="check-icon">${done ? '✅' : '⬜'}</span>
+                </button>
+                <div class="exercise-info-block">
+                    <span class="exercise-name">${ex.icon} ${ex.name}</span>
+                    <span class="exercise-meta">${config.sets}×${config.reps} · ${config.rest} rest · ${ex.equipment}</span>
+                </div>
+                <button class="exercise-expand-btn" data-exercise="${ex.id}" aria-label="Show details for ${ex.name}">ℹ️</button>
+            </div>
+            <div class="exercise-detail" id="detail-${ex.id}" hidden>
+                <p class="exercise-instructions">${ex.instructions}</p>
+                <ul class="exercise-tips">${ex.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+                <p class="exercise-slot">Slot: ${ex.slot} · ${ex.why}</p>
+                <p class="exercise-img-placeholder">📷 <em>${ex.imageDescription}</em> — add photo as <code>assets/exercises/${ex.id}.png</code></p>
+            </div>
+            <div class="exercise-sets-block" id="sets-${ex.id}">
+                ${setsHTML}
+            </div>
+        `;
+        listEl.appendChild(el);
+    });
+}
+
+function renderRestDay(training) {
+    // Visibility handled in render()
+}
+
+function renderRestChecklist() {
+    const listEl = document.getElementById('rest-checklist');
+    if (!listEl) return;
+
+    const dateKey = todayKey();
+    if (!state.restChecks[dateKey]) {
+        state.restChecks[dateKey] = {};
+    }
+    const checks = state.restChecks[dateKey];
+
+    listEl.innerHTML = '';
+    REST_ITEMS.forEach(item => {
+        const done = !!checks[item.id];
+        const el = document.createElement('div');
+        el.className = 'food-row' + (done ? ' food-row--done' : '');
+        el.innerHTML = `
+            <button class="food-check rest-check-btn" data-rest="${item.id}" aria-label="Mark ${item.label}">
+                <span class="check-icon">${done ? '✅' : '⬜'}</span>
+            </button>
+            <span class="food-label">${item.icon} ${item.label}</span>
+        `;
+        listEl.appendChild(el);
+    });
+}
+
+function renderFoodChecklist() {
+    const listEl = document.getElementById('food-checklist');
+    const progressEl = document.getElementById('food-progress');
+    const dateKey = todayKey();
+
+    if (!state.foodChecks[dateKey]) {
+        state.foodChecks[dateKey] = {};
+    }
+    const checks = state.foodChecks[dateKey];
+
+    let doneCount = 0;
+    listEl.innerHTML = '';
+
+    FOOD_ITEMS.forEach(item => {
+        const done = !!checks[item.id];
+        if (done) doneCount++;
+
+        const el = document.createElement('div');
+        el.className = 'food-row' + (done ? ' food-row--done' : '');
+        el.innerHTML = `
+            <button class="food-check" data-food="${item.id}" aria-label="Mark ${item.label}">
+                <span class="check-icon">${done ? '✅' : '⬜'}</span>
+            </button>
+            <span class="food-label">${item.icon} ${item.label}</span>
+        `;
+        listEl.appendChild(el);
+    });
+
+    progressEl.textContent = `${doneCount} / ${FOOD_ITEMS.length}`;
+    progressEl.classList.toggle('food-progress--complete', doneCount === FOOD_ITEMS.length);
+}
+
+function renderBodyweight() {
+    const input = document.getElementById('bodyweight-input');
+    if (state.bodyweight) input.value = state.bodyweight;
+}
+
+function renderProgressionAlerts() {
+    const container = document.getElementById('progression-alerts');
+    const list = document.getElementById('progression-list');
+    const flags = Object.entries(state.progression || {}).filter(([, v]) => v.flagged);
+
+    if (flags.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = '';
+    list.innerHTML = '';
+    flags.forEach(([exId, data]) => {
+        const ex = EXERCISES.find(e => e.id === exId);
+        if (!ex) return;
+        const el = document.createElement('div');
+        el.className = 'progression-flag';
+        el.innerHTML = `
+            <span>⬆️ Increase <strong>${ex.name}</strong> weight by ~5 lbs next ${data.dayType} day</span>
+            <button class="dismiss-flag" data-exercise="${exId}">✓ Got it</button>
+        `;
+        list.appendChild(el);
+    });
+}
+
+// ─── Last-Log Lookup ──────────────────────────────────────────────
+function getLastLogForExercise(exerciseId) {
+    const entries = Object.entries(state.workoutLog || {}).sort((a, b) => b[0].localeCompare(a[0]));
+    for (const [dateKey, exercises] of entries) {
+        if (dateKey === todayKey()) continue;
+        if (exercises[exerciseId]) return exercises[exerciseId];
+    }
+    return null;
+}
+
+// ─── Progression Logic ────────────────────────────────────────────
+function checkProgression(exerciseId, dayIndex) {
+    const config = getDayConfig(dayIndex);
+    if (!config) return;
+
+    const dateKey = todayKey();
+    const log = state.workoutLog[dateKey]?.[exerciseId];
+    if (!log?.sets || log.sets.length === 0) return;
+
+    const match = config.reps.match(/(\d+)[–-](\d+)/);
+    if (!match) return;
+    const maxReps = parseInt(match[2]);
+
+    const filledSets = log.sets.filter(s => s.weight && s.reps);
+    if (filledSets.length < config.sets) return;
+
+    const allAtMax = filledSets.every(s => parseInt(s.reps) >= maxReps);
+    const sameWeight = new Set(filledSets.map(s => s.weight)).size === 1;
+
+    if (allAtMax && sameWeight) {
+        if (!state.progression) state.progression = {};
+        state.progression[exerciseId] = { flagged: true, dayType: config.type, weight: filledSets[0].weight, date: dateKey };
+        saveState();
+    }
+}
+
+// ─── Collapsible Toggle Logic ─────────────────────────────────────
+function setupCollapsibles() {
+    document.addEventListener('click', e => {
+        const toggle = e.target.closest('.collapsible-toggle');
+        if (!toggle) return;
+
+        const targetId = toggle.dataset.collapse;
+        const body = document.getElementById(targetId);
+        if (!body) return;
+
+        const isCurrentlyOpen = !body.hidden;
+        body.hidden = isCurrentlyOpen;
+        toggle.setAttribute('aria-expanded', String(!isCurrentlyOpen));
+        toggle.querySelector('.toggle-icon').textContent = isCurrentlyOpen ? '▸' : '▾';
+    });
+}
+
+// ─── Event Handling ───────────────────────────────────────────────
+
+function setupEvents() {
+    // Day selector buttons
+    document.getElementById('day-selector').addEventListener('click', e => {
+        const btn = e.target.closest('.day-btn');
+        if (!btn) return;
+        state.selectedDay = parseInt(btn.dataset.day);
+        saveState();
+        render();
+    });
+
+    // Exercise check toggles + detail expand
+    document.getElementById('exercise-checklist').addEventListener('click', e => {
+        const checkBtn = e.target.closest('.exercise-check');
+        if (checkBtn) {
+            const exId = checkBtn.dataset.exercise;
+            const checkKey = `${todayKey()}_${state.selectedDay}`;
+            if (!state.exerciseChecks[checkKey]) state.exerciseChecks[checkKey] = {};
+            state.exerciseChecks[checkKey][exId] = !state.exerciseChecks[checkKey][exId];
+            saveState();
+            render();
+            return;
+        }
+
+        const expandBtn = e.target.closest('.exercise-expand-btn');
+        if (expandBtn) {
+            const exId = expandBtn.dataset.exercise;
+            const detail = document.getElementById(`detail-${exId}`);
+            if (detail) detail.hidden = !detail.hidden;
         }
     });
-    
-    currentState.progress[workoutKey] = progress;
+
+    // Set inputs (weight/reps logging)
+    document.getElementById('exercise-checklist').addEventListener('input', e => {
+        const input = e.target.closest('.set-input');
+        if (!input) return;
+
+        const exId = input.dataset.exercise;
+        const setIdx = parseInt(input.dataset.set);
+        const field = input.dataset.field;
+        const dateKey = todayKey();
+
+        if (!state.workoutLog[dateKey]) state.workoutLog[dateKey] = {};
+        if (!state.workoutLog[dateKey][exId]) state.workoutLog[dateKey][exId] = { sets: [] };
+
+        const sets = state.workoutLog[dateKey][exId].sets;
+        while (sets.length <= setIdx) sets.push({ weight: '', reps: '' });
+        sets[setIdx][field] = input.value;
+
+        clearTimeout(window._saveTimeout);
+        window._saveTimeout = setTimeout(() => {
+            saveState();
+            checkProgression(exId, state.selectedDay);
+            renderProgressionAlerts();
+        }, 500);
+    });
+
+    // Food check toggles
+    document.getElementById('food-checklist').addEventListener('click', e => {
+        const checkBtn = e.target.closest('.food-check');
+        if (!checkBtn) return;
+        const foodId = checkBtn.dataset.food;
+        const dateKey = todayKey();
+        if (!state.foodChecks[dateKey]) state.foodChecks[dateKey] = {};
+        state.foodChecks[dateKey][foodId] = !state.foodChecks[dateKey][foodId];
+        saveState();
+        renderFoodChecklist();
+    });
+
+    // Rest day check toggles
+    document.getElementById('rest-checklist').addEventListener('click', e => {
+        const checkBtn = e.target.closest('.rest-check-btn');
+        if (!checkBtn) return;
+        const restId = checkBtn.dataset.rest;
+        const dateKey = todayKey();
+        if (!state.restChecks[dateKey]) state.restChecks[dateKey] = {};
+        state.restChecks[dateKey][restId] = !state.restChecks[dateKey][restId];
+        saveState();
+        renderRestChecklist();
+    });
+
+    // Bodyweight input
+    document.getElementById('bodyweight-input').addEventListener('change', e => {
+        state.bodyweight = e.target.value;
+        saveState();
+    });
+
+    // Reset all
+    document.getElementById('reset-all-btn').addEventListener('click', () => {
+        if (confirm('Reset ALL data? This will erase your workout logs, food checks, and progression. Are you sure?')) {
+            localStorage.removeItem(STORAGE_KEY);
+            state = defaultState();
+            saveState();
+            render();
+        }
+    });
+
+    // Dismiss progression flag
+    document.getElementById('progression-list').addEventListener('click', e => {
+        const btn = e.target.closest('.dismiss-flag');
+        if (!btn) return;
+        const exId = btn.dataset.exercise;
+        if (state.progression?.[exId]) {
+            state.progression[exId].flagged = false;
+            saveState();
+            renderProgressionAlerts();
+        }
+    });
+}
+
+// ─── Cleanup Old Data ─────────────────────────────────────────────
+function cleanupOldData() {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const cutoffStr = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, '0')}-${String(cutoff.getDate()).padStart(2, '0')}`;
+
+    for (const key of Object.keys(state.exerciseChecks || {})) { if (key < cutoffStr) delete state.exerciseChecks[key]; }
+    for (const key of Object.keys(state.foodChecks || {}))     { if (key < cutoffStr) delete state.foodChecks[key]; }
+    for (const key of Object.keys(state.restChecks || {}))     { if (key < cutoffStr) delete state.restChecks[key]; }
+    for (const key of Object.keys(state.workoutLog || {}))     { if (key < cutoffStr) delete state.workoutLog[key]; }
     saveState();
 }
 
-// Setup event listeners
-function setupEventListeners() {
-    // Start workout
-    elements.startWorkoutBtn.addEventListener('click', () => {
-        currentState.workoutStarted = true;
-        elements.startWorkoutBtn.disabled = true;
-        elements.completeWorkoutBtn.disabled = false;
-        elements.startWorkoutBtn.textContent = 'Workout in Progress...';
-        
-        // Start timer (simplified)
-        const startTime = new Date();
-        localStorage.setItem('workoutStartTime', startTime.toISOString());
-    });
-    
-    // Complete workout
-    elements.completeWorkoutBtn.addEventListener('click', () => {
-        saveProgressForWorkout();
-        currentState.workoutStarted = false;
-        
-        // Auto-advance to next day
-        currentState.day = (currentState.day + 1) % 3;
-        if (currentState.day === 0) {
-            currentState.week = currentState.week === 4 ? 1 : currentState.week + 1;
-            if (currentState.week === 1) currentState.cycle++;
-        }
-        
-        saveState();
-        renderWorkout();
-        
-        // Reset buttons
-        elements.startWorkoutBtn.disabled = false;
-        elements.completeWorkoutBtn.disabled = true;
-        elements.startWorkoutBtn.textContent = 'Start Workout';
-        
-        // Show completion message
-        alert('Workout completed! Progress saved. Auto-advanced to next session.');
-    });
-    
-    // Navigation
-    elements.prevDayBtn.addEventListener('click', () => {
-        currentState.day = currentState.day > 0 ? currentState.day - 1 : 2;
-        if (currentState.day === 2) {
-            currentState.week = currentState.week > 1 ? currentState.week - 1 : 4;
-            if (currentState.week === 4) currentState.cycle = Math.max(1, currentState.cycle - 1);
-        }
-        saveState();
-        renderWorkout();
-    });
-    
-    elements.nextDayBtn.addEventListener('click', () => {
-        currentState.day = (currentState.day + 1) % 3;
-        if (currentState.day === 0) {
-            currentState.week = currentState.week === 4 ? 1 : currentState.week + 1;
-            if (currentState.week === 1) currentState.cycle++;
-        }
-        saveState();
-        renderWorkout();
-    });
-    
-    // Reset week
-    elements.resetWeekBtn.addEventListener('click', () => {
-        if (confirm('Reset current week progress?')) {
-            currentState.day = 0;
-            saveState();
-            renderWorkout();
-        }
-    });
-    
-    // Deload week
-    elements.deloadWeekBtn.addEventListener('click', () => {
-        if (confirm('Start deload week? This will reset to week 4 (recovery).')) {
-            currentState.week = 4;
-            currentState.day = 0;
-            saveState();
-            renderWorkout();
-        }
-    });
-    
-    // Bodyweight input
-    elements.bodyweightInput.addEventListener('change', () => {
-        currentState.bodyweight = parseInt(elements.bodyweightInput.value) || 140;
-        saveState();
-    });
-    
-    // Modal close
-    elements.closeModalBtn.addEventListener('click', () => {
-        elements.exerciseModal.style.display = 'none';
-    });
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', (event) => {
-        if (event.target === elements.exerciseModal) {
-            elements.exerciseModal.style.display = 'none';
-        }
-    });
-    
-    // Navigation buttons
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Remove active class from all
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            // Add to clicked
-            btn.classList.add('active');
-            // Switch view (simplified - would show/hide sections)
-            const view = btn.dataset.view;
-            console.log(`Switch to ${view} view`);
-        });
-    });
-    
-    // Auto-save progress on input change
-    document.addEventListener('input', (e) => {
-        if (e.target.matches('.set-inputs input')) {
-            // Auto-save progress after a delay
-            clearTimeout(window.progressSaveTimeout);
-            window.progressSaveTimeout = setTimeout(saveProgressForWorkout, 1000);
-        }
-    });
-}
-
-// Initialize on load
-document.addEventListener('DOMContentLoaded', init);
-
-// Service Worker for PWA (optional for GitHub Pages)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(err => {
-            console.log('ServiceWorker registration failed: ', err);
-        });
-    });
-}
+// ─── Init ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    state.selectedDay = todayDayIndex();
+    cleanupOldData();
+    setupCollapsibles();
+    render();
+    setupEvents();
+});
