@@ -309,7 +309,8 @@ function renderWorkout(dayIndex, training, config) {
                 <ul class="exercise-tips">${ex.tips.map(t => `<li>${t}</li>`).join('')}</ul>
                 <p class="exercise-slot">Slot: ${ex.slot} · ${ex.why}</p>
                 <div class="exercise-image-container">
-                    <img src="assets/exercises/${ex.id}.gif" alt="${ex.imageDescription || ex.name}" class="exercise-gif" onerror="this.parentElement.style.display='none'">
+                    <img src="assets/exercises/${ex.id}.gif" alt="${ex.imageDescription || ex.name}" class="exercise-gif" onerror="this.style.display='none'">
+                    ${ex.id === 'conditioning' ? `<img src="assets/exercises/ski_erg.gif" alt="Ski Erg form" class="exercise-gif" onerror="this.style.display='none'">` : ''}
                 </div>
             </div>
             <div class="exercise-sets-block" id="sets-${ex.id}">

@@ -64,28 +64,7 @@ Every day, check off:
 - [ ] Fish oil · Vitamin D · B12
 - [ ] Orange + raw spinach
 
----
 
-## Adding Exercise Photos
-
-Each exercise has a placeholder for a proper form photo. To add images:
-
-1. Create the directory: `assets/exercises/`
-2. Add PNG images named by exercise ID:
-
-| Exercise | Filename |
-|----------|----------|
-| Push-Ups | `assets/exercises/pushup.png` |
-| Kettlebell Row | `assets/exercises/kb_row.png` |
-| Goblet Squat | `assets/exercises/goblet_squat.png` |
-| Hamstring Curl | `assets/exercises/ham_curl.png` |
-| Overhead Press | `assets/exercises/ohp.png` |
-| Dead Bug | `assets/exercises/dead_bug.png` |
-| Row / Ski Erg | `assets/exercises/conditioning.png` |
-
-Photos should show proper form — neutral background, clear body position.
-
----
 
 ## Tech Stack
 

@@ -440,6 +440,11 @@ body {
     object-fit: contain;
 }
 
+.exercise-gif + .exercise-gif {
+    margin-top: 10px;
+    border-top: 1px solid var(--border-subtle);
+}
+
 /* ─── Sets Input Rows ────────────────────────────────────────── */
 .exercise-sets-block {
     padding: 8px 16px 14px;
