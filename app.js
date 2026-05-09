@@ -89,25 +89,30 @@ function parseProgram(text) {
             if (titleMatch) document.querySelector('h1').textContent = titleMatch[1];
             if (subtitleMatch) document.querySelector('.subtitle').textContent = subtitleMatch[1];
         } else if (title.includes('Exercises')) {
+            // Split by newline followed by the start of an exercise block
+            // We use a regex that handles the first one correctly or we clean it up after
             const exBlocks = content.split(/\n- \[/);
             EXERCISES.length = 0;
             exBlocks.forEach(block => {
-                const idMatch = block.match(/^([^\]]+)\] \*\*(.+)\*\* (.*)/);
+                // The first block might still have the leading "- [" if it was the start of the content
+                const cleanBlock = block.replace(/^- \[/, '');
+                const idMatch = cleanBlock.match(/^([^\]]+)\] \*\*(.+)\*\* (.*)/);
                 if (!idMatch) return;
-                const id = idMatch[1];
-                const name = idMatch[2];
-                const icon = idMatch[3];
+                
+                const id = idMatch[1].trim();
+                const name = idMatch[2].trim();
+                const icon = idMatch[3].trim();
 
-                const equipment = block.match(/Equipment:\s*(.*)/)?.[1] || '';
-                const slot = block.match(/Slot:\s*(.*)/)?.[1] || '';
-                const why = block.match(/Why:\s*(.*)/)?.[1] || '';
-                const instructions = block.match(/Instructions:\s*(.*)/)?.[1] || '';
-                const tipsStr = block.match(/Tips:\s*(.*)/)?.[1] || '';
-                const imageDescription = block.match(/Image:\s*(.*)/)?.[1] || '';
+                const equipment = cleanBlock.match(/Equipment:\s*(.*)/)?.[1] || '';
+                const slot = cleanBlock.match(/Slot:\s*(.*)/)?.[1] || '';
+                const why = cleanBlock.match(/Why:\s*(.*)/)?.[1] || '';
+                const instructions = cleanBlock.match(/Instructions:\s*(.*)/)?.[1] || '';
+                const tipsStr = cleanBlock.match(/Tips:\s*(.*)/)?.[1] || '';
+                const imageDescription = cleanBlock.match(/Image:\s*(.*)/)?.[1] || '';
 
                 EXERCISES.push({
                     id, name, icon, equipment, slot, why, instructions,
-                    tips: tipsStr.split(',').map(t => t.trim()),
+                    tips: tipsStr.split(',').map(t => t.trim()).filter(t => t),
                     imageDescription
                 });
             });
@@ -311,7 +316,6 @@ function renderWorkout(dayIndex, training, config) {
                 <div class="exercise-image-container">
                     <img src="assets/exercises/${ex.id}.gif" alt="${ex.imageDescription || ex.name}" class="exercise-gif" onerror="this.style.display='none'">
                     ${ex.id === 'conditioning' ? `<img src="assets/exercises/ski_erg.gif" alt="Ski Erg form" class="exercise-gif" onerror="this.style.display='none'">` : ''}
-                    ${ex.id === 'pushup' ? `<img src="assets/exercises/pushup_form.gif" alt="Push-up form" class="exercise-gif" onerror="this.style.display='none'">` : ''}
                 </div>
             </div>
             <div class="exercise-sets-block" id="sets-${ex.id}">
