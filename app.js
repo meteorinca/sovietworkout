@@ -4,119 +4,14 @@
    Static site, localStorage only. GitHub Pages compatible.
    =================================================================== */
 
-// ─── Fixed Exercise Pool ──────────────────────────────────────────
-const EXERCISES = [
-    {
-        id: 'pushup',
-        name: 'Push-Ups',
-        equipment: 'Bodyweight ± backpack',
-        slot: 'Push',
-        icon: '💪',
-        why: 'Shoulder-safe, no barbell needed',
-        instructions: 'Keep core tight. Lower until chest nearly touches ground. Add weight via backpack once bodyweight is too easy.',
-        tips: ['Hands just outside shoulders', 'Squeeze glutes to keep hips level', 'Full lockout at top'],
-        imageDescription: 'Proper push-up form showing straight body alignment'
-    },
-    {
-        id: 'kb_row',
-        name: 'Kettlebell Row',
-        equipment: 'Kettlebell',
-        slot: 'Pull',
-        icon: '👐',
-        why: 'No pull-up bar needed, protects low back',
-        instructions: 'One arm at a time. Brace core, pull elbow past torso, squeeze shoulder blade.',
-        tips: ['Flat back, slight hip hinge', 'Don\'t rotate torso', 'Controlled negative'],
-        imageDescription: 'One-arm kettlebell row with flat back position'
-    },
-    {
-        id: 'goblet_squat',
-        name: 'Goblet Squat',
-        equipment: 'Kettlebell',
-        slot: 'Legs (squat)',
-        icon: '🦵',
-        why: 'Teaches bracing, back-safe',
-        instructions: 'Hold kettlebell at chest. Squat deep, keep chest up, knees track over toes.',
-        tips: ['Elbows between knees at bottom', 'Drive through whole foot', 'Pause at bottom for control'],
-        imageDescription: 'Goblet squat with kettlebell held at chest level'
-    },
-    {
-        id: 'ham_curl',
-        name: 'Hamstring Curl',
-        equipment: 'Gym machine',
-        slot: 'Legs (hinge)',
-        icon: '🦵',
-        why: 'Direct posterior chain, zero spinal load',
-        instructions: 'Adjust machine pad to sit just above ankles. Curl with control, squeeze at top.',
-        tips: ['Don\'t arch your back', 'Slow negative (3 seconds)', 'Full range of motion'],
-        imageDescription: 'Seated or lying hamstring curl machine form'
-    },
-    {
-        id: 'ohp',
-        name: 'Overhead Press (KB)',
-        equipment: 'Kettlebell',
-        slot: 'Shoulder',
-        icon: '🏋️',
-        why: 'Armpit at 45°, joint-safe neutral grip',
-        instructions: 'Start at shoulder. Press straight up with neutral grip. Brace core — don\'t arch back.',
-        tips: ['Armpit at 45° — NOT flared out', 'Lockout overhead, bicep by ear', 'Breathe at the top'],
-        imageDescription: 'Kettlebell overhead press with neutral grip and 45-degree arm angle'
-    },
-    {
-        id: 'dead_bug',
-        name: 'Dead Bug',
-        equipment: 'Bodyweight',
-        slot: 'Core',
-        icon: '🎯',
-        why: 'Anti-extension, no spinal compression',
-        instructions: 'Lie on back, arms up, knees at 90°. Extend opposite arm and leg. Keep lower back pressed into floor.',
-        tips: ['Exhale as you extend', 'Move slowly — this is a control exercise', 'If back lifts off floor, reduce range'],
-        imageDescription: 'Dead bug exercise with opposite arm and leg extended'
-    },
-    {
-        id: 'conditioning',
-        name: 'Row / Ski Erg',
-        equipment: 'Gym machines',
-        slot: 'Conditioning',
-        icon: '🚣',
-        why: 'Full-body conditioning, low injury risk',
-        instructions: '10-15 minutes total. Alternate between rower and ski erg, or pick one. Moderate steady pace.',
-        tips: ['Don\'t death-grip the handle', 'Push with legs first on rower', 'Keep consistent stroke rate'],
-        imageDescription: 'Rowing machine and ski erg conditioning'
-    }
-];
+// ─── Program Data (Populated via program.md) ──────────────────────
+const EXERCISES = [];
+const DAY_CONFIG = {};
+const TRAINING_DAYS = [];
+const FOOD_ITEMS = [];
+const REST_ITEMS = [];
 
-// ─── Day Types ────────────────────────────────────────────────────
-const DAY_CONFIG = {
-    0: { type: 'Heavy', label: 'HEAVY DAY', desc: 'Low reps · Long rest · Strength', sets: 4, reps: '3–5', rest: '2–3 min', instruction: 'Stop 2 reps before failure. Rest 2-3 min between sets. Choose a load where you could do 5-7 reps if forced.' },
-    2: { type: 'Volume', label: 'VOLUME DAY', desc: 'More reps · Shorter rest · Hypertrophy', sets: 3, reps: '8–12', rest: '90s', instruction: 'Stop 2 reps before failure. Rest 90s between sets. Controlled tempo, feel the muscle.' },
-    4: { type: 'Light', label: 'LIGHT / TECHNIQUE DAY', desc: 'Low load · Perfect form · Speed', sets: 3, reps: '8–10', rest: '60s', instruction: 'Light or bodyweight only. Focus on perfect form and controlled tempo. Rest 60s.' }
-};
-
-const TRAINING_DAYS = [0, 2, 4];
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-// ─── Food Checklist ───────────────────────────────────────────────
-const FOOD_ITEMS = [
-    { id: 'eggs', label: '8–9 boiled eggs', icon: '🥚' },
-    { id: 'chicken', label: '150–200g chicken breast', icon: '🍗' },
-    { id: 'parantha', label: '1–2 spicy chicken paranthas', icon: '🫓' },
-    { id: 'milk', label: '500ml milk', icon: '🥛' },
-    { id: 'creatine', label: '5g creatine', icon: '💊' },
-    { id: 'supps', label: 'Fish oil · Vitamin D · B12', icon: '💊' },
-    { id: 'fruit_veg', label: 'Orange + raw spinach', icon: '🍊' }
-];
-
-// ─── Rest Day Checklist ───────────────────────────────────────────
-const REST_ITEMS = [
-    { id: 'rest_walk', label: '20–30 min walk or light movement', icon: '🚶' },
-    { id: 'rest_food', label: 'Full food checklist (all items)', icon: '🍽️' },
-    { id: 'rest_creatine', label: '5g creatine', icon: '💊' },
-    { id: 'rest_supps', label: 'Supplements (fish oil, D, B3)', icon: '💊' },
-    { id: 'rest_water', label: 'Water + pinch of salt', icon: '💧' },
-    { id: 'rest_sleep', label: '7–8 hours sleep', icon: '😴' },
-    { id: 'rest_postwalk', label: '10 min walk after largest meal', icon: '🚶' },
-    { id: 'rest_stretch', label: 'Brief stretching', icon: '🧘' }
-];
 
 // ─── State ────────────────────────────────────────────────────────
 const STORAGE_KEY = 'ironSoviet_v2';
@@ -166,6 +61,135 @@ function isTrainingDay(dayIndex) {
 
 function getDayConfig(dayIndex) {
     return DAY_CONFIG[dayIndex] || null;
+}
+
+// ─── Markdown Parser ──────────────────────────────────────────────
+async function loadProgram() {
+    try {
+        const response = await fetch('program.md');
+        if (!response.ok) throw new Error('Could not load program.md');
+        const text = await response.text();
+        parseProgram(text);
+    } catch (err) {
+        console.error('Error loading program:', err);
+    }
+}
+
+function parseProgram(text) {
+    // Split by H2 headers
+    const sections = text.split(/\n## /);
+    sections.forEach(section => {
+        const lines = section.split('\n');
+        const title = lines[0].trim();
+        const content = lines.slice(1).join('\n').trim();
+
+        if (title.includes('Program Meta')) {
+            const titleMatch = content.match(/Title:\s*(.*)/);
+            const subtitleMatch = content.match(/Subtitle:\s*(.*)/);
+            if (titleMatch) document.querySelector('h1').textContent = titleMatch[1];
+            if (subtitleMatch) document.querySelector('.subtitle').textContent = subtitleMatch[1];
+        } else if (title.includes('Exercises')) {
+            const exBlocks = content.split(/\n- \[/);
+            EXERCISES.length = 0;
+            exBlocks.forEach(block => {
+                const idMatch = block.match(/^([^\]]+)\] \*\*(.+)\*\* (.*)/);
+                if (!idMatch) return;
+                const id = idMatch[1];
+                const name = idMatch[2];
+                const icon = idMatch[3];
+
+                const equipment = block.match(/Equipment:\s*(.*)/)?.[1] || '';
+                const slot = block.match(/Slot:\s*(.*)/)?.[1] || '';
+                const why = block.match(/Why:\s*(.*)/)?.[1] || '';
+                const instructions = block.match(/Instructions:\s*(.*)/)?.[1] || '';
+                const tipsStr = block.match(/Tips:\s*(.*)/)?.[1] || '';
+                const imageDescription = block.match(/Image:\s*(.*)/)?.[1] || '';
+
+                EXERCISES.push({
+                    id, name, icon, equipment, slot, why, instructions,
+                    tips: tipsStr.split(',').map(t => t.trim()),
+                    imageDescription
+                });
+            });
+        } else if (title.includes('Schedule')) {
+            const schedLines = content.split('\n');
+            const dayMap = { 'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6 };
+            TRAINING_DAYS.length = 0;
+            schedLines.forEach(line => {
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length < 5) return;
+                const dayMatch = parts[0].match(/-\s*(\w+):\s*([^(]+)(?:\((.*)\))?/);
+                if (!dayMatch) return;
+                const dayName = dayMatch[1];
+                const type = dayMatch[2].trim();
+                const desc = dayMatch[3] ? dayMatch[3].trim() : type;
+                const dayIdx = dayMap[dayName];
+                if (dayIdx === undefined) return;
+
+                DAY_CONFIG[dayIdx] = {
+                    type,
+                    label: `${type.toUpperCase()} DAY`,
+                    desc: desc,
+                    sets: parseInt(parts[1]),
+                    reps: parts[2].replace('reps', '').trim(),
+                    rest: parts[3].replace('rest', '').trim(),
+                    instruction: parts[4]
+                };
+                TRAINING_DAYS.push(dayIdx);
+            });
+        } else if (title.includes('Nutrition')) {
+            FOOD_ITEMS.length = 0;
+            const foodLines = content.split('\n');
+            foodLines.forEach(line => {
+                const match = line.match(/-\s*\[([^\]]+)\]\s*(\S+)\s*(.*)/);
+                if (match) FOOD_ITEMS.push({ id: match[1], icon: match[2], label: match[3] });
+            });
+        } else if (title.includes('Rest Checklist')) {
+            REST_ITEMS.length = 0;
+            const restLines = content.split('\n');
+            restLines.forEach(line => {
+                const match = line.match(/-\s*\[([^\]]+)\]\s*(\S+)\s*(.*)/);
+                if (match) REST_ITEMS.push({ id: match[1], icon: match[2], label: match[3] });
+            });
+        } else if (title.includes('Warmup')) {
+            const listEl = document.getElementById('warmup-body');
+            if (listEl) listEl.innerHTML = marked.parse(content);
+        } else if (title.includes('Cooldown')) {
+            const listEl = document.getElementById('cooldown-body');
+            if (listEl) listEl.innerHTML = marked.parse(content);
+        } else if (title.includes('Never Do')) {
+            const listEl = document.getElementById('never-do-content');
+            if (listEl) listEl.innerHTML = marked.parse(content);
+        } else if (title.includes('Rest Protocol')) {
+            const container = document.getElementById('rest-protocol-body');
+            if (container) {
+                // Pre-process for better styling: add protocol-block class to each H3 section
+                const html = marked.parse(content);
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                let processedHTML = '';
+                let currentBlock = null;
+                
+                Array.from(temp.children).forEach(child => {
+                    if (child.tagName === 'H3') {
+                        if (currentBlock) processedHTML += '</div>';
+                        const isDanger = child.textContent.toLowerCase().includes('do not');
+                        processedHTML += `<div class="protocol-block${isDanger ? ' protocol-block--danger' : ''}"><h4>${child.textContent}</h4>`;
+                        currentBlock = true;
+                    } else {
+                        if (currentBlock) {
+                            processedHTML += child.outerHTML;
+                        } else {
+                            processedHTML += child.outerHTML;
+                        }
+                    }
+                });
+                if (currentBlock) processedHTML += '</div>';
+                container.innerHTML = processedHTML;
+            }
+        }
+    });
 }
 
 // ─── Rendering ────────────────────────────────────────────────────
@@ -326,6 +350,8 @@ function renderRestChecklist() {
 function renderFoodChecklist() {
     const listEl = document.getElementById('food-checklist');
     const progressEl = document.getElementById('food-progress');
+    if (!listEl || !progressEl) return;
+
     const dateKey = todayKey();
 
     if (!state.foodChecks[dateKey]) {
@@ -562,8 +588,9 @@ function cleanupOldData() {
 }
 
 // ─── Init ─────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     state.selectedDay = todayDayIndex();
+    await loadProgram();
     cleanupOldData();
     setupCollapsibles();
     render();

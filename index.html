@@ -24,6 +24,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -67,12 +68,7 @@
                     <span class="toggle-icon">▸</span>
                 </button>
                 <div class="collapsible-body" id="warmup-body" hidden>
-                    <ul class="static-list">
-                        <li>3 min row machine – easy pace</li>
-                        <li>10 bodyweight squats</li>
-                        <li>Arm circles – 10 forward, 10 back</li>
-                        <li>Leg swings – 10 per side</li>
-                    </ul>
+                    <!-- Loaded from program.md -->
                 </div>
             </section>
 
@@ -98,13 +94,7 @@
                     <span class="toggle-icon">▸</span>
                 </button>
                 <div class="collapsible-body" id="cooldown-body" hidden>
-                    <ul class="static-list">
-                        <li>Doorway chest stretch – 30s each side</li>
-                        <li>Lat stretch (hang from bar or doorframe) – 30s</li>
-                        <li>Hip flexor stretch – 30s each side</li>
-                        <li>Hamstring stretch – 30s each side</li>
-                        <li>Cat-cow – 10 reps slow</li>
-                    </ul>
+                    <!-- Loaded from program.md -->
                 </div>
             </section>
 
@@ -125,69 +115,7 @@
                         <span class="toggle-icon">▸</span>
                     </button>
                     <div class="collapsible-body rest-protocol-body" id="rest-protocol-body" hidden>
-
-                        <div class="protocol-block">
-                            <h4>1. Move, but don't train</h4>
-                            <p>Low-intensity movement increases blood flow to muscles without creating fatigue, aiding
-                                repair.</p>
-                            <p class="protocol-do"><strong>Do 20–30 min of one:</strong></p>
-                            <ul class="static-list">
-                                <li>Walking outdoors (morning sunlight for circadian rhythm & vitamin D synergy)</li>
-                                <li>Very light rowing (conversational pace, no clock-watching)</li>
-                                <li>Casual cycling</li>
-                            </ul>
-                            <p class="protocol-avoid">Avoid anything that makes you breathe hard or creates muscle burn.
-                            </p>
-                        </div>
-
-                        <div class="protocol-block">
-                            <h4>2. Hydration & salt</h4>
-                            <p>Muscle repair requires intracellular water. Without adequate sodium, you excrete water
-                                faster.</p>
-                            <ul class="static-list">
-                                <li>Water across the day + pinch of salt in one glass or on food</li>
-                                <li>Urine stays pale yellow, not clear</li>
-                            </ul>
-                        </div>
-
-                        <div class="protocol-block">
-                            <h4>3. Eat the full food checklist</h4>
-                            <p>Rest days are when muscle protein synthesis peaks from the prior workout. The checklist
-                                is <strong>non-negotiable</strong> even on off days.</p>
-                        </div>
-
-                        <div class="protocol-block">
-                            <h4>4. Sleep optimization</h4>
-                            <p>Growth hormone pulses during deep sleep. One bad night measurably lowers muscle repair.
-                            </p>
-                            <ul class="static-list">
-                                <li>Same bedtime as workout days</li>
-                            </ul>
-                        </div>
-
-                        <div class="protocol-block">
-                            <h4>5. Walk after meals</h4>
-                            <p>10-minute walk after the largest meal improves nutrient partitioning — glucose is
-                                shuttled into muscles instead of sitting in the bloodstream.</p>
-                        </div>
-
-                        <div class="protocol-block">
-                            <h4>6. Stretch or mobility</h4>
-                            <p>5–10 min of the same post-workout stretches. Do it while watching something — zero effort
-                                integration.</p>
-                        </div>
-
-                        <div class="protocol-block protocol-block--danger">
-                            <h4>7. Do NOT</h4>
-                            <ul class="avoid-list">
-                                <li>Do extra sets "just because" — blunts recovery, increases injury risk</li>
-                                <li>Sit 8+ hours without standing breaks — undoes hip mobility gains</li>
-                                <li>Drink alcohol heavily — inhibits muscle protein synthesis for 24+ hours</li>
-                                <li>Skip meals to "save calories" — catabolic state on a rest day is counterproductive
-                                </li>
-                            </ul>
-                        </div>
-
+                        <!-- Loaded from program.md -->
                     </div>
                 </div>
 
@@ -228,13 +156,9 @@
             <!-- Avoid List (always visible) -->
             <section class="avoid-card" id="avoid-card">
                 <h3>🚫 Never Do</h3>
-                <ul class="avoid-list">
-                    <li>No cold stretching — warm up first</li>
-                    <li>No failure sets — always leave 2 in the tank</li>
-                    <li>No flared elbows on overhead press — armpit at 45°</li>
-                    <li>No raw eggs — cook them</li>
-                    <li>No sugar drinks as meals</li>
-                </ul>
+                <div id="never-do-content">
+                    <!-- Loaded from program.md -->
+                </div>
             </section>
 
             <!-- Bodyweight Log -->
