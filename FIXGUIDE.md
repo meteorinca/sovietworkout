@@ -77,7 +77,7 @@ When you open the site, the top half shows the workout for today; the bottom hal
 - 1–2 spicy chicken paranthas
 - 500ml milk
 - 5g creatine
-- Fish oil, vitamin D, B3
+- Fish oil, vitamin D, B12
 - Orange + raw spinach
 
 Just checkboxes. You already said you love this. It will keep you accountable.

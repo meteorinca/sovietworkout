@@ -61,7 +61,7 @@ Every day, check off:
 - [ ] 1–2 spicy chicken paranthas
 - [ ] 500ml milk
 - [ ] 5g creatine
-- [ ] Fish oil · Vitamin D · B3
+- [ ] Fish oil · Vitamin D · B12
 - [ ] Orange + raw spinach
 
 ---

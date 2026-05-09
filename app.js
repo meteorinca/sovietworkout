@@ -102,7 +102,7 @@ const FOOD_ITEMS = [
     { id: 'parantha', label: '1–2 spicy chicken paranthas', icon: '🫓' },
     { id: 'milk', label: '500ml milk', icon: '🥛' },
     { id: 'creatine', label: '5g creatine', icon: '💊' },
-    { id: 'supps', label: 'Fish oil · Vitamin D · B3', icon: '💊' },
+    { id: 'supps', label: 'Fish oil · Vitamin D · B12', icon: '💊' },
     { id: 'fruit_veg', label: 'Orange + raw spinach', icon: '🍊' }
 ];
 
