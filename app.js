@@ -11,6 +11,9 @@ const TRAINING_DAYS = [];
 const FOOD_ITEMS = [];
 const REST_ITEMS = [];
 
+// Per-day exercise configs: { 0: [{id, sets, reps, weight, rest}, ...], 2: [...], 4: [...] }
+const DAY_EXERCISES = {};
+
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 // ─── State ────────────────────────────────────────────────────────
@@ -25,7 +28,8 @@ function defaultState() {
         foodChecks: {},       // "YYYY-MM-DD": { foodId: true }
         restChecks: {},       // "YYYY-MM-DD": { restId: true }
         progression: {},      // exerciseId: { flagged, dayType, weight, date }
-        workoutLog: {}        // "YYYY-MM-DD": { exerciseId: { sets: [{weight, reps}] } }
+        workoutLog: {},       // "YYYY-MM-DD": { exerciseId: { sets: [{weight, reps}] } }
+        customWeights: {}     // exerciseId_dayIndex: "weight" (user overrides)
     };
 }
 
@@ -88,13 +92,11 @@ function parseProgram(text) {
             const subtitleMatch = content.match(/Subtitle:\s*(.*)/);
             if (titleMatch) document.querySelector('h1').textContent = titleMatch[1];
             if (subtitleMatch) document.querySelector('.subtitle').textContent = subtitleMatch[1];
-        } else if (title.includes('Exercises')) {
+        } else if (title === 'Exercises' || title.startsWith('Exercises')) {
             // Split by newline followed by the start of an exercise block
-            // We use a regex that handles the first one correctly or we clean it up after
             const exBlocks = content.split(/\n- \[/);
             EXERCISES.length = 0;
             exBlocks.forEach(block => {
-                // The first block might still have the leading "- [" if it was the start of the content
                 const cleanBlock = block.replace(/^- \[/, '');
                 const idMatch = cleanBlock.match(/^([^\]]+)\] \*\*(.+)\*\* (.*)/);
                 if (!idMatch) return;
@@ -116,6 +118,39 @@ function parseProgram(text) {
                     imageDescription
                 });
             });
+        } else if (title.includes('DayExercises')) {
+            // Parse per-day exercise configurations
+            const dayMap = { 'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6 };
+            let currentDay = null;
+            
+            content.split('\n').forEach(line => {
+                const dayHeader = line.match(/^###\s+(\w+)/);
+                if (dayHeader) {
+                    currentDay = dayMap[dayHeader[1]];
+                    if (currentDay !== undefined) {
+                        DAY_EXERCISES[currentDay] = [];
+                    }
+                    return;
+                }
+                
+                if (currentDay === null || currentDay === undefined) return;
+                
+                // Parse: - exercise_id | sets x reps | weight | rest
+                const exMatch = line.match(/^-\s+(\w+)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)$/);
+                if (!exMatch) return;
+                
+                const id = exMatch[1].trim();
+                const setsReps = exMatch[2].trim();
+                const weight = exMatch[3].trim();
+                const rest = exMatch[4].trim();
+                
+                // Parse sets x reps: "3 x 5", "3 x 8/arm", "3 x 30 sec", "2 x 10/leg"
+                const srMatch = setsReps.match(/(\d+)\s*x\s*(.+)/);
+                const sets = srMatch ? parseInt(srMatch[1]) : 3;
+                const reps = srMatch ? srMatch[2].trim() : setsReps;
+                
+                DAY_EXERCISES[currentDay].push({ id, sets, reps, weight, rest });
+            });
         } else if (title.includes('Schedule')) {
             const schedLines = content.split('\n');
             const dayMap = { 'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6 };
@@ -123,7 +158,7 @@ function parseProgram(text) {
             schedLines.forEach(line => {
                 const parts = line.split('|').map(p => p.trim());
                 if (parts.length < 5) return;
-                const dayMatch = parts[0].match(/-\s*(\w+):\s*([^(]+)(?:\((.*)\))?/);
+                const dayMatch = parts[0].match(/-\s*(\w+):\s*([^(]+)(?:\((.+)\))?/);
                 if (!dayMatch) return;
                 const dayName = dayMatch[1];
                 const type = dayMatch[2].trim();
@@ -156,6 +191,9 @@ function parseProgram(text) {
                 const match = line.match(/-\s*\[([^\]]+)\]\s*(\S+)\s*(.*)/);
                 if (match) REST_ITEMS.push({ id: match[1], icon: match[2], label: match[3] });
             });
+        } else if (title.includes('MovementSnack')) {
+            const listEl = document.getElementById('movement-snack-body');
+            if (listEl) listEl.innerHTML = marked.parse(content);
         } else if (title.includes('Warmup')) {
             const listEl = document.getElementById('warmup-body');
             if (listEl) listEl.innerHTML = marked.parse(content);
@@ -218,6 +256,9 @@ function render() {
     document.getElementById('workout-section').style.display = training ? '' : 'none';
     document.getElementById('cooldown-section').style.display = training ? '' : 'none';
 
+    // Movement snack is always visible (it's collapsible by user)
+    document.getElementById('movement-snack-section').style.display = '';
+
     // Show/hide rest-day section
     document.getElementById('rest-day-section').style.display = training ? 'none' : '';
 }
@@ -272,7 +313,13 @@ function renderWorkout(dayIndex, training, config) {
 
     listEl.innerHTML = '';
 
-    EXERCISES.forEach(ex => {
+    // Get per-day exercise list
+    const dayExercises = DAY_EXERCISES[dayIndex] || [];
+    
+    dayExercises.forEach(dayEx => {
+        const ex = EXERCISES.find(e => e.id === dayEx.id);
+        if (!ex) return;
+        
         const done = !!checks[ex.id];
         const el = document.createElement('div');
         el.className = 'exercise-row' + (done ? ' exercise-row--done' : '');
@@ -281,7 +328,7 @@ function renderWorkout(dayIndex, training, config) {
         const prevData = getLastLogForExercise(ex.id, dayIndex);
         const currentLog = state.workoutLog[dateKey]?.[ex.id];
 
-        const numSets = config.sets;
+        const numSets = dayEx.sets;
         let setsHTML = '';
         for (let s = 0; s < numSets; s++) {
             const savedWeight = currentLog?.sets?.[s]?.weight ?? prevData?.sets?.[s]?.weight ?? '';
@@ -298,6 +345,9 @@ function renderWorkout(dayIndex, training, config) {
                 </div>`;
         }
 
+        // Build exercise meta string with per-exercise details
+        const metaStr = `${dayEx.sets}×${dayEx.reps} · ${dayEx.weight} · ${dayEx.rest} rest`;
+
         el.innerHTML = `
             <div class="exercise-row-main">
                 <button class="exercise-check" data-exercise="${ex.id}" aria-label="Mark ${ex.name} done">
@@ -305,7 +355,7 @@ function renderWorkout(dayIndex, training, config) {
                 </button>
                 <div class="exercise-info-block">
                     <span class="exercise-name">${ex.icon} ${ex.name}</span>
-                    <span class="exercise-meta">${config.sets}×${config.reps} · ${config.rest} rest · ${ex.equipment}</span>
+                    <span class="exercise-meta">${metaStr}</span>
                 </div>
                 <button class="exercise-expand-btn" data-exercise="${ex.id}" aria-label="Show details for ${ex.name}">ℹ️</button>
             </div>
@@ -315,7 +365,6 @@ function renderWorkout(dayIndex, training, config) {
                 <p class="exercise-slot">Slot: ${ex.slot} · ${ex.why}</p>
                 <div class="exercise-image-container">
                     <img src="assets/exercises/${ex.id}.gif" alt="${ex.imageDescription || ex.name}" class="exercise-gif" onerror="this.style.display='none'">
-                    ${ex.id === 'conditioning' ? `<img src="assets/exercises/ski_erg.gif" alt="Ski Erg form" class="exercise-gif" onerror="this.style.display='none'">` : ''}
                 </div>
             </div>
             <div class="exercise-sets-block" id="sets-${ex.id}">
@@ -441,8 +490,12 @@ function checkProgression(exerciseId, dayIndex) {
     if (!match) return;
     const maxReps = parseInt(match[2]);
 
+    const dayExercises = DAY_EXERCISES[dayIndex] || [];
+    const dayEx = dayExercises.find(e => e.id === exerciseId);
+    const expectedSets = dayEx ? dayEx.sets : config.sets;
+
     const filledSets = log.sets.filter(s => s.weight && s.reps);
-    if (filledSets.length < config.sets) return;
+    if (filledSets.length < expectedSets) return;
 
     const allAtMax = filledSets.every(s => parseInt(s.reps) >= maxReps);
     const sameWeight = new Set(filledSets.map(s => s.weight)).size === 1;

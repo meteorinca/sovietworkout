@@ -261,24 +261,46 @@ body {
     border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
-.static-list, #warmup-body ul, #cooldown-body ul, .rest-protocol-body ul {
+.static-list, #warmup-body ul, #cooldown-body ul, .rest-protocol-body ul, #movement-snack-body ul {
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
-.static-list li, #warmup-body li, #cooldown-body li, .rest-protocol-body li {
+.static-list li, #warmup-body li, #cooldown-body li, .rest-protocol-body li, #movement-snack-body li {
     padding: 6px 0;
     padding-left: 20px;
     position: relative;
     color: var(--text-secondary);
     font-size: 0.9rem;
 }
-.static-list li::before, #warmup-body li::before, #cooldown-body li::before, .rest-protocol-body li::before {
+.static-list li::before, #warmup-body li::before, #cooldown-body li::before, .rest-protocol-body li::before, #movement-snack-body li::before {
     content: '▹';
     position: absolute;
     left: 0;
     color: var(--red);
+}
+
+/* ─── Movement Snack Tag & Note ──────────────────────────────── */
+.snack-tag {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-input);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    margin-left: 8px;
+    letter-spacing: 0.3px;
+}
+.snack-note {
+    font-size: 0.84rem;
+    color: var(--amber);
+    font-style: italic;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: var(--amber-dim);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 /* ─── Workout Card ───────────────────────────────────────────── */

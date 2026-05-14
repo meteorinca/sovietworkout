@@ -60,10 +60,22 @@
                 <span class="day-banner-desc" id="day-banner-desc">Low reps · Long rest · Strength</span>
             </div>
 
+            <!-- Daily Movement Snack (Optional, always visible, collapsible) -->
+            <section class="collapsible-section" id="movement-snack-section">
+                <button class="collapsible-toggle" data-collapse="movement-snack-body" aria-expanded="false">
+                    <span>🤸 Daily Movement Snack <span class="snack-tag">Optional · 2–3 min</span></span>
+                    <span class="toggle-icon">▸</span>
+                </button>
+                <div class="collapsible-body" id="movement-snack-body" hidden>
+                    <p class="snack-note">Not a workout. Do scattered through the day.</p>
+                    <!-- Loaded from program.md -->
+                </div>
+            </section>
+
             <!-- Warm-up Section (training days only) -->
             <section class="collapsible-section" id="warmup-section">
                 <button class="collapsible-toggle" data-collapse="warmup-body" aria-expanded="false">
-                    <span>🔥 Warm-Up</span>
+                    <span>🔥 Warm-Up (5–7 min)</span>
                     <span class="toggle-icon">▸</span>
                 </button>
                 <div class="collapsible-body" id="warmup-body" hidden>
@@ -78,18 +90,17 @@
                     <span class="toggle-icon">▾</span>
                 </button>
                 <div class="collapsible-body" id="workout-body">
-                    <div class="card-instruction" id="workout-instruction">Stop 2 reps before failure. Rest 3 min
-                        between sets.</div>
+                    <div class="card-instruction" id="workout-instruction">Stop 2 reps before failure. Rest as specified per exercise.</div>
                     <div class="exercise-checklist" id="exercise-checklist">
                         <!-- Rendered by JS -->
                     </div>
                 </div>
             </section>
 
-            <!-- Cooldown Section (training days only) -->
+            <!-- Stretching After Workout (training days only) -->
             <section class="collapsible-section" id="cooldown-section">
                 <button class="collapsible-toggle" data-collapse="cooldown-body" aria-expanded="false">
-                    <span>🧊 Post-Workout Stretch</span>
+                    <span>🧘 Stretching After Workout (5 min)</span>
                     <span class="toggle-icon">▸</span>
                 </button>
                 <div class="collapsible-body" id="cooldown-body" hidden>
