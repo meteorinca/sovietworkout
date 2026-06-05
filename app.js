@@ -649,11 +649,503 @@ function cleanupOldData() {
 }
 
 // ─── Init ─────────────────────────────────────────────────────────
+const CUSTOM_PROGRAM_KEY = 'ironSoviet_customProgram';
+
 document.addEventListener('DOMContentLoaded', async () => {
     state.selectedDay = todayDayIndex();
-    await loadProgram();
+    await loadProgram();          // parse defaults from program.md
+    applyCustomProgram();         // overlay any user customisations
     cleanupOldData();
     setupCollapsibles();
     render();
     setupEvents();
+    setupEditor();
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// Program Editor — makes the app customisable per person
+// ═══════════════════════════════════════════════════════════════════
+
+/* ── Custom-program persistence ─────────────────────────────────── */
+function loadCustomProgram() {
+    try {
+        const raw = localStorage.getItem(CUSTOM_PROGRAM_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+}
+
+function saveCustomProgram(data) {
+    localStorage.setItem(CUSTOM_PROGRAM_KEY, JSON.stringify(data));
+}
+
+function deleteCustomProgram() {
+    localStorage.removeItem(CUSTOM_PROGRAM_KEY);
+}
+
+/**
+ * Apply a saved custom program over the defaults already parsed
+ * from program.md. Merges exercises, day-exercises, schedule,
+ * and food items.
+ */
+function applyCustomProgram() {
+    const custom = loadCustomProgram();
+    if (!custom) return;
+
+    // Exercises list
+    if (custom.exercises) {
+        EXERCISES.length = 0;
+        custom.exercises.forEach(e => EXERCISES.push(e));
+    }
+
+    // Per-day exercise configs
+    if (custom.dayExercises) {
+        Object.keys(DAY_EXERCISES).forEach(k => delete DAY_EXERCISES[k]);
+        for (const [day, list] of Object.entries(custom.dayExercises)) {
+            DAY_EXERCISES[parseInt(day)] = list;
+        }
+    }
+
+    // Schedule (training days + day config)
+    if (custom.schedule) {
+        TRAINING_DAYS.length = 0;
+        Object.keys(DAY_CONFIG).forEach(k => delete DAY_CONFIG[k]);
+        for (const [day, cfg] of Object.entries(custom.schedule)) {
+            const idx = parseInt(day);
+            DAY_CONFIG[idx] = cfg;
+            TRAINING_DAYS.push(idx);
+        }
+    }
+
+    // Food items
+    if (custom.foodItems) {
+        FOOD_ITEMS.length = 0;
+        custom.foodItems.forEach(f => FOOD_ITEMS.push(f));
+    }
+}
+
+/* ── Working draft (in-memory copy the editor modifies) ─────── */
+let editorDraft = null;
+let editorSelectedDay = 0; // which training day tab is selected
+
+function createDraft() {
+    return {
+        exercises: JSON.parse(JSON.stringify(EXERCISES)),
+        dayExercises: JSON.parse(JSON.stringify(DAY_EXERCISES)),
+        schedule: {},
+        foodItems: JSON.parse(JSON.stringify(FOOD_ITEMS)),
+    };
+}
+
+function createDraftSchedule(draft) {
+    // Build schedule from current DAY_CONFIG / TRAINING_DAYS
+    draft.schedule = {};
+    for (let i = 0; i < 7; i++) {
+        if (DAY_CONFIG[i]) {
+            draft.schedule[i] = JSON.parse(JSON.stringify(DAY_CONFIG[i]));
+        }
+    }
+}
+
+/* ── Open / Close ───────────────────────────────────────────── */
+function openEditor() {
+    editorDraft = createDraft();
+    createDraftSchedule(editorDraft);
+    // default to first training day
+    const tDays = Object.keys(editorDraft.schedule).map(Number).sort();
+    editorSelectedDay = tDays.length ? tDays[0] : 0;
+    document.getElementById('editor-overlay').hidden = false;
+    document.body.style.overflow = 'hidden';
+    renderEditorTabs();
+    renderEditorExercisesTab();
+}
+
+function closeEditor() {
+    document.getElementById('editor-overlay').hidden = true;
+    document.body.style.overflow = '';
+    editorDraft = null;
+}
+
+/* ── Tab Switching ──────────────────────────────────────────── */
+function switchEditorTab(tabName) {
+    document.querySelectorAll('.editor-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.editor-panel').forEach(p => {
+        p.hidden = p.id !== `panel-${tabName}`;
+    });
+    // render content for selected tab
+    if (tabName === 'exercises') renderEditorExercisesTab();
+    else if (tabName === 'schedule') renderEditorScheduleTab();
+    else if (tabName === 'nutrition') renderEditorNutritionTab();
+}
+
+/* ── Exercises Tab Rendering ────────────────────────────────── */
+function renderEditorTabs() {
+    // Day sub-tabs inside exercises panel
+    const container = document.getElementById('editor-day-tabs');
+    const tDays = Object.keys(editorDraft.schedule).map(Number).sort();
+    container.innerHTML = '';
+    tDays.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'editor-day-tab' + (d === editorSelectedDay ? ' active' : '');
+        btn.textContent = DAY_NAMES[d].slice(0, 3);
+        btn.addEventListener('click', () => {
+            editorSelectedDay = d;
+            renderEditorTabs();
+            renderEditorExercisesTab();
+        });
+        container.appendChild(btn);
+    });
+}
+
+function renderEditorExercisesTab() {
+    const list = document.getElementById('editor-exercises-list');
+    list.innerHTML = '';
+    const dayEx = editorDraft.dayExercises[editorSelectedDay] || [];
+
+    dayEx.forEach((dex, idx) => {
+        const ex = editorDraft.exercises.find(e => e.id === dex.id);
+        const name = ex ? `${ex.icon} ${ex.name}` : dex.id;
+
+        const card = document.createElement('div');
+        card.className = 'editor-exercise-card';
+        card.innerHTML = `
+            <div class="editor-exercise-header" data-idx="${idx}">
+                <span class="editor-exercise-name">${name}</span>
+                <span class="editor-exercise-toggle">▸</span>
+            </div>
+            <div class="editor-exercise-body" hidden>
+                <div class="editor-field-row">
+                    <span class="editor-field-label">Sets</span>
+                    <input class="editor-field-input" data-field="sets" type="number" min="1" max="10" value="${dex.sets}">
+                </div>
+                <div class="editor-field-row">
+                    <span class="editor-field-label">Reps</span>
+                    <input class="editor-field-input" data-field="reps" value="${dex.reps}">
+                </div>
+                <div class="editor-field-row">
+                    <span class="editor-field-label">Weight</span>
+                    <input class="editor-field-input" data-field="weight" value="${dex.weight}">
+                </div>
+                <div class="editor-field-row">
+                    <span class="editor-field-label">Rest</span>
+                    <input class="editor-field-input" data-field="rest" value="${dex.rest}">
+                </div>
+                <button class="editor-exercise-remove" data-idx="${idx}">🗑 Remove from this day</button>
+            </div>
+        `;
+
+        // Toggle expand
+        card.querySelector('.editor-exercise-header').addEventListener('click', () => {
+            const body = card.querySelector('.editor-exercise-body');
+            const icon = card.querySelector('.editor-exercise-toggle');
+            body.hidden = !body.hidden;
+            icon.textContent = body.hidden ? '▸' : '▾';
+        });
+
+        // Field edits
+        card.querySelectorAll('.editor-field-input').forEach(input => {
+            input.addEventListener('input', () => {
+                const field = input.dataset.field;
+                const val = input.value;
+                if (field === 'sets') {
+                    editorDraft.dayExercises[editorSelectedDay][idx].sets = parseInt(val) || 1;
+                } else {
+                    editorDraft.dayExercises[editorSelectedDay][idx][field] = val;
+                }
+            });
+        });
+
+        // Remove
+        card.querySelector('.editor-exercise-remove').addEventListener('click', () => {
+            editorDraft.dayExercises[editorSelectedDay].splice(idx, 1);
+            renderEditorExercisesTab();
+        });
+
+        list.appendChild(card);
+    });
+}
+
+/* ── Add Exercise ───────────────────────────────────────────── */
+function handleAddExercise() {
+    const container = document.getElementById('panel-exercises');
+    // remove existing add form if present
+    const existing = container.querySelector('.editor-add-form');
+    if (existing) { existing.remove(); return; }
+
+    // Build a picker from available exercises not already on this day
+    const dayEx = editorDraft.dayExercises[editorSelectedDay] || [];
+    const usedIds = dayEx.map(d => d.id);
+    const available = editorDraft.exercises.filter(e => !usedIds.includes(e.id));
+
+    const form = document.createElement('div');
+    form.className = 'editor-add-form';
+
+    if (available.length === 0) {
+        form.innerHTML = `<p style="color:var(--text-muted);font-size:0.84rem;">All exercises are already on this day.</p>`;
+    } else {
+        let optionsHTML = available.map(e =>
+            `<option value="${e.id}">${e.icon} ${e.name}</option>`
+        ).join('');
+        form.innerHTML = `
+            <div class="editor-field-row">
+                <span class="editor-field-label">Pick</span>
+                <select class="editor-field-input" id="add-ex-select">${optionsHTML}</select>
+            </div>
+            <div class="editor-field-row">
+                <span class="editor-field-label">Sets</span>
+                <input class="editor-field-input" id="add-ex-sets" type="number" value="3" min="1" max="10">
+            </div>
+            <div class="editor-field-row">
+                <span class="editor-field-label">Reps</span>
+                <input class="editor-field-input" id="add-ex-reps" value="8">
+            </div>
+            <div class="editor-field-row">
+                <span class="editor-field-label">Weight</span>
+                <input class="editor-field-input" id="add-ex-weight" value="BW">
+            </div>
+            <div class="editor-field-row">
+                <span class="editor-field-label">Rest</span>
+                <input class="editor-field-input" id="add-ex-rest" value="60 sec">
+            </div>
+            <div class="editor-add-form-actions">
+                <button class="editor-btn editor-btn--primary" id="confirm-add-ex">✓ Add</button>
+                <button class="editor-btn editor-btn--secondary" id="cancel-add-ex">Cancel</button>
+            </div>
+        `;
+    }
+
+    container.querySelector('.editor-add-exercise').after(form);
+
+    form.querySelector('#cancel-add-ex')?.addEventListener('click', () => form.remove());
+    form.querySelector('#confirm-add-ex')?.addEventListener('click', () => {
+        const id = form.querySelector('#add-ex-select').value;
+        const sets = parseInt(form.querySelector('#add-ex-sets').value) || 3;
+        const reps = form.querySelector('#add-ex-reps').value || '8';
+        const weight = form.querySelector('#add-ex-weight').value || 'BW';
+        const rest = form.querySelector('#add-ex-rest').value || '60 sec';
+
+        if (!editorDraft.dayExercises[editorSelectedDay]) {
+            editorDraft.dayExercises[editorSelectedDay] = [];
+        }
+        editorDraft.dayExercises[editorSelectedDay].push({ id, sets, reps, weight, rest });
+        form.remove();
+        renderEditorExercisesTab();
+    });
+}
+
+/* ── Schedule Tab ───────────────────────────────────────────── */
+function renderEditorScheduleTab() {
+    const grid = document.getElementById('editor-schedule-grid');
+    grid.innerHTML = '';
+
+    DAY_NAMES.forEach((name, idx) => {
+        const isTraining = !!editorDraft.schedule[idx];
+        const cfg = editorDraft.schedule[idx];
+        const type = cfg ? cfg.type : 'Heavy';
+
+        const row = document.createElement('div');
+        row.className = 'editor-schedule-row';
+        row.innerHTML = `
+            <span class="editor-schedule-day">${name}</span>
+            <div class="editor-schedule-toggle-wrap">
+                <div class="editor-toggle ${isTraining ? 'active' : ''}" data-day="${idx}"></div>
+            </div>
+            <div class="editor-schedule-type">
+                <select data-day="${idx}" ${!isTraining ? 'disabled' : ''}>
+                    <option value="Heavy" ${type === 'Heavy' ? 'selected' : ''}>Heavy</option>
+                    <option value="Volume" ${type === 'Volume' ? 'selected' : ''}>Volume</option>
+                    <option value="Light" ${type === 'Light' ? 'selected' : ''}>Light</option>
+                </select>
+            </div>
+        `;
+
+        const toggle = row.querySelector('.editor-toggle');
+        const select = row.querySelector('select');
+
+        toggle.addEventListener('click', () => {
+            if (editorDraft.schedule[idx]) {
+                delete editorDraft.schedule[idx];
+                // also remove day-exercises for that day
+                delete editorDraft.dayExercises[idx];
+            } else {
+                const t = select.value || 'Heavy';
+                editorDraft.schedule[idx] = buildDayConfig(t);
+                // initialise with empty exercise list
+                editorDraft.dayExercises[idx] = [];
+            }
+            renderEditorScheduleTab();
+            renderEditorTabs(); // refresh day sub-tabs
+        });
+
+        select.addEventListener('change', () => {
+            if (editorDraft.schedule[idx]) {
+                editorDraft.schedule[idx] = buildDayConfig(select.value);
+            }
+        });
+
+        grid.appendChild(row);
+    });
+}
+
+function buildDayConfig(type) {
+    const presets = {
+        Heavy:  { type: 'Heavy',  label: 'HEAVY DAY',  desc: 'Low reps · Long rest · Strength',       sets: 3, reps: '3–8',  rest: '2 min', instruction: 'Low reps, heavy load. Long rest. Leave 2 reps in tank.' },
+        Volume: { type: 'Volume', label: 'VOLUME DAY', desc: 'More reps · Shorter rest · Pump and growth', sets: 3, reps: '8–15', rest: '60s',   instruction: 'More reps, shorter rest. Pump and growth.' },
+        Light:  { type: 'Light',  label: 'LIGHT DAY',  desc: 'Low load · Perfect form · Active recovery', sets: 3, reps: '6–12', rest: '30s',   instruction: 'Low load, perfect form, explosive speed. Active recovery.' }
+    };
+    return presets[type] || presets.Heavy;
+}
+
+/* ── Nutrition Tab ──────────────────────────────────────────── */
+function renderEditorNutritionTab() {
+    const list = document.getElementById('editor-nutrition-list');
+    list.innerHTML = '';
+
+    editorDraft.foodItems.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'editor-nutrition-row';
+        row.innerHTML = `
+            <div class="editor-nutrition-icon">
+                <input value="${item.icon}" data-idx="${idx}" data-field="icon">
+            </div>
+            <div class="editor-nutrition-name">
+                <input value="${item.label}" data-idx="${idx}" data-field="label">
+            </div>
+            <button class="editor-nutrition-remove" data-idx="${idx}">✕</button>
+        `;
+
+        row.querySelectorAll('input').forEach(inp => {
+            inp.addEventListener('input', () => {
+                editorDraft.foodItems[idx][inp.dataset.field] = inp.value;
+            });
+        });
+
+        row.querySelector('.editor-nutrition-remove').addEventListener('click', () => {
+            editorDraft.foodItems.splice(idx, 1);
+            renderEditorNutritionTab();
+        });
+
+        list.appendChild(row);
+    });
+}
+
+function handleAddFood() {
+    const newId = 'food_' + Date.now();
+    editorDraft.foodItems.push({ id: newId, icon: '🍽️', label: 'New item' });
+    renderEditorNutritionTab();
+}
+
+/* ── Save ────────────────────────────────────────────────────── */
+function saveEditor() {
+    // Persist the draft
+    saveCustomProgram(editorDraft);
+
+    // Apply immediately to the live program
+    applyCustomProgram();
+    render();
+
+    // Flash feedback
+    const btn = document.getElementById('editor-save-btn');
+    btn.textContent = '✅ Saved!';
+    btn.classList.add('editor-save-flash');
+    setTimeout(() => {
+        btn.textContent = '💾 Save Changes';
+        btn.classList.remove('editor-save-flash');
+    }, 1200);
+}
+
+/* ── Export / Import / Reset ─────────────────────────────────── */
+function exportProgram() {
+    const data = loadCustomProgram() || createDraft();
+    if (!data.schedule || Object.keys(data.schedule).length === 0) {
+        createDraftSchedule(data);
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'iron-soviet-program.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showShareStatus('✅ Program exported!');
+}
+
+function importProgram(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!data.exercises || !data.dayExercises) {
+                showShareStatus('❌ Invalid program file.');
+                return;
+            }
+            saveCustomProgram(data);
+            applyCustomProgram();
+            render();
+            // refresh editor draft
+            editorDraft = createDraft();
+            createDraftSchedule(editorDraft);
+            const tDays = Object.keys(editorDraft.schedule).map(Number).sort();
+            editorSelectedDay = tDays.length ? tDays[0] : 0;
+            renderEditorTabs();
+            renderEditorExercisesTab();
+            showShareStatus('✅ Program imported successfully!');
+        } catch {
+            showShareStatus('❌ Could not parse file.');
+        }
+    };
+    reader.readAsText(file);
+}
+
+function resetProgram() {
+    if (!confirm('Reset to the default program? Your customisations will be lost.')) return;
+    deleteCustomProgram();
+    // Reload program from scratch
+    location.reload();
+}
+
+function showShareStatus(msg) {
+    const el = document.getElementById('editor-share-status');
+    el.textContent = msg;
+    setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+/* ── Wire up editor events ──────────────────────────────────── */
+function setupEditor() {
+    // Open
+    document.getElementById('edit-program-btn').addEventListener('click', openEditor);
+
+    // Close
+    document.getElementById('editor-close-btn').addEventListener('click', closeEditor);
+    document.getElementById('editor-overlay').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeEditor();
+    });
+
+    // Tabs
+    document.getElementById('editor-tabs').addEventListener('click', (e) => {
+        const tab = e.target.closest('.editor-tab');
+        if (tab) switchEditorTab(tab.dataset.tab);
+    });
+
+    // Save
+    document.getElementById('editor-save-btn').addEventListener('click', saveEditor);
+
+    // Add exercise
+    document.getElementById('add-exercise-btn').addEventListener('click', handleAddExercise);
+
+    // Add food
+    document.getElementById('add-food-btn').addEventListener('click', handleAddFood);
+
+    // Export
+    document.getElementById('export-program-btn').addEventListener('click', exportProgram);
+
+    // Import
+    document.getElementById('import-program-input').addEventListener('change', (e) => {
+        if (e.target.files[0]) importProgram(e.target.files[0]);
+        e.target.value = ''; // allow re-select
+    });
+
+    // Reset
+    document.getElementById('reset-program-btn').addEventListener('click', resetProgram);
+}

@@ -36,6 +36,7 @@
                 <p class="subtitle">Strength · Nutrition · Discipline</p>
             </div>
             <div class="header-right">
+                <button id="edit-program-btn" class="icon-btn" title="Customize Program">⚙️</button>
                 <button id="reset-all-btn" class="icon-btn" title="Reset all data">⟳</button>
             </div>
         </header>
@@ -181,6 +182,68 @@
             </section>
 
         </main>
+    </div>
+
+    <!-- ═══ Program Editor Modal ═══ -->
+    <div class="editor-overlay" id="editor-overlay" hidden>
+        <div class="editor-modal">
+            <div class="editor-header">
+                <h2>⚙️ Customize Program</h2>
+                <button class="editor-close-btn" id="editor-close-btn">✕</button>
+            </div>
+
+            <nav class="editor-tabs" id="editor-tabs">
+                <button class="editor-tab active" data-tab="exercises">🏋️ Exercises</button>
+                <button class="editor-tab" data-tab="schedule">📅 Schedule</button>
+                <button class="editor-tab" data-tab="nutrition">🍳 Nutrition</button>
+                <button class="editor-tab" data-tab="sharing">📤 Share</button>
+            </nav>
+
+            <div class="editor-body" id="editor-body">
+
+                <!-- Exercises Tab -->
+                <div class="editor-panel" id="panel-exercises">
+                    <p class="editor-hint">Edit weights, reps, and rest per exercise for each training day. Tap an exercise to expand.</p>
+                    <div class="editor-day-tabs" id="editor-day-tabs"></div>
+                    <div class="editor-exercises-list" id="editor-exercises-list"></div>
+                    <div class="editor-add-exercise">
+                        <button class="editor-btn editor-btn--secondary" id="add-exercise-btn">+ Add Exercise</button>
+                    </div>
+                </div>
+
+                <!-- Schedule Tab -->
+                <div class="editor-panel" id="panel-schedule" hidden>
+                    <p class="editor-hint">Choose which days are training days and their type.</p>
+                    <div class="editor-schedule-grid" id="editor-schedule-grid"></div>
+                </div>
+
+                <!-- Nutrition Tab -->
+                <div class="editor-panel" id="panel-nutrition" hidden>
+                    <p class="editor-hint">Add, remove, or rename nutrition items.</p>
+                    <div class="editor-nutrition-list" id="editor-nutrition-list"></div>
+                    <div class="editor-add-exercise">
+                        <button class="editor-btn editor-btn--secondary" id="add-food-btn">+ Add Food Item</button>
+                    </div>
+                </div>
+
+                <!-- Sharing Tab -->
+                <div class="editor-panel" id="panel-sharing" hidden>
+                    <p class="editor-hint">Export your custom program to share, or import one.</p>
+                    <div class="editor-sharing-actions">
+                        <button class="editor-btn editor-btn--primary" id="export-program-btn">📥 Export Program (JSON)</button>
+                        <label class="editor-btn editor-btn--secondary editor-import-label" for="import-program-input">📤 Import Program (JSON)</label>
+                        <input type="file" id="import-program-input" accept=".json" hidden>
+                        <button class="editor-btn editor-btn--danger" id="reset-program-btn">🔄 Reset to Default</button>
+                    </div>
+                    <div class="editor-share-status" id="editor-share-status"></div>
+                </div>
+
+            </div>
+
+            <div class="editor-footer">
+                <button class="editor-btn editor-btn--primary editor-save-btn" id="editor-save-btn">💾 Save Changes</button>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
